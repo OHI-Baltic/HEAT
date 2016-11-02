@@ -11,16 +11,13 @@ library(oxydebt)
 library(mgcv)
 library(lubridate)
 library(MASS)
+library(dplyr)
 
 # for spatial data
 library(sp)
 library(rgdal)
 library(raster)
-library(dplyr)
 
-# for plotting
-library(lattice)
-library(latticeExtra)
 
 # clear workspace -------------------
 
