@@ -124,6 +124,8 @@ rm(aux)
 #
 # ----------------------------
 
+# make sure model folder exists
+dir.create("model")
 
 write.csv(file = "model/input.csv", oxy, row.names = FALSE)
 
