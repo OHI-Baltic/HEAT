@@ -1,3 +1,12 @@
+Makefile
+figures/*
+output/*
+write_up/*
+refs/*
+
+scripts/working.R
+scripts/*_convert_plots_to_png.R
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
