@@ -24,6 +24,9 @@ rownames(out) <- paste(out$ID)
 # join this onto the profiles
 profiles <- cbind.data.frame(profiles, out[paste(profiles$ID),-1])
 
+# make sure output folder exists
+dir.create("output")
+
 # write out
 write.csv(file = "output/profiles.csv", profiles, row.names = FALSE)
 

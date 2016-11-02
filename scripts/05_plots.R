@@ -7,6 +7,8 @@
 # load packages etc.
 source("scripts/header.R")
 
+# make sure figures folder exists
+dir.create("figures")
 
 # read data -------------------------------------------
 
