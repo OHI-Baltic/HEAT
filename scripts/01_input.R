@@ -8,6 +8,37 @@
 source("scripts/header.R")
 
 
+# download data from ftp site ------------------------------------------
+
+# the location of the input data
+ftp <- "ftp://ftp.ices.dk/dist/heat/oxygen-debt-indicator/"
+
+# create input folder
+if (!dir.exists("input")) dir.create("input")
+
+# quick function to download input data and save
+get_input <- function(what, force = FALSE) {
+  if (!file.exists(what) | force) {
+    download.file(paste0(ftp, what), destfile = what)
+  }
+}
+
+# the list of input files required to calculate the indicator
+files <- c("input/AssessmentUnit_20112016Polygon.cst",
+           "input/AssessmentUnit_20112016Polygon.dbf",
+           "input/AssessmentUnit_20112016Polygon.prj",
+           "input/AssessmentUnit_20112016Polygon.shp",
+           "input/AssessmentUnit_20112016Polygon.shx",
+           "input/auxilliary.txt",
+           "input/GMT_GEBCO_08_BalticSea.asc",
+           "input/StationSamplesCTD.txt",
+           "input/StationSamplesICE.txt")
+
+# download to local folder
+tmp <- lapply(files, get_input, force = force.download)
+
+
+
 # read in data ----------------------------------------------------------
 
 
