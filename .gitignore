@@ -16,4 +16,4 @@ scripts/*_convert_plots_to_png.R
 # file types to ignore
 *.pdf
 *.asc
-*.png
+
