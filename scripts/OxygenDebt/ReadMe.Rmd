@@ -1,0 +1,45 @@
+---
+title: "ReadMe"
+author: ICES
+date: 5th Novrember 2016
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Oxygen Debt Indicator Calculation Scripts
+
+
+```{r setwd, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(root.dir = "../..")
+source("header.R")
+oxy <- read.csv("../../model/input.csv")
+profiles <- read.csv("../../output/profiles.csv")
+```
+
+```{r example_norun, eval=FALSE}
+# load libraries
+source("scripts/OxygenDebt/header.R")
+
+# read in data
+oxy <- read.csv("model/input.csv")
+profiles <- read.csv("output/profiles.csv")
+```
+
+
+
+```{r example_run}
+# inpect the results from one fit
+
+ID <- 8492
+data <- oxy[oxy$ID == ID,]
+fit <- doonefit_full(data, ID = ID)
+
+p <- plot_fit(fit, data)
+print(p)
+```
+
