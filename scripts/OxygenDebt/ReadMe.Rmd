@@ -19,22 +19,27 @@ The following as an example of fitting the HEAT oxygen debt profile models to CT
 source("scripts/OxygenDebt/01_input.R")
 ```
 
-This will create the folder `model` and the file `model/input.csv`.  The following code loads the `oxydebt` package for the `run_full_model` and `plot_fit` functions.  
+This will create the folder `model` and the file `model/input.csv`.  
 
-```{r oxysetup, echo = FALSE, message = FALSE}
-library(oxydebt)
+```{r example_norun, eval=FALSE}
+# read in data
+oxy <- read.csv("model/input.csv")
+head(oxy)
+```
+
+```{r oxysetup, echo=FALSE}
 oxy <- read.csv("../../model/input.csv")
+head(oxy)
 ```
 
 
-```{r example_norun, eval=FALSE}
+Now that the data are read in, the following code loads the `oxydebt` package for the `run_full_model` and `plot_fit` functions.  
+
+
+```{r example_run, message = FALSE}
 # load libraries
 library(oxydebt)
 
-# read in data
-oxy <- read.csv("model/input.csv")
-```
-```{r example_run}
 # inspect the results from one fit
 ID <- 8492
 data <- oxy[oxy$ID == ID,]
