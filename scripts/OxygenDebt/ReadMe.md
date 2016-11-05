@@ -51,7 +51,7 @@ head(oxy)
     ## 5 8.66        H    100      TRUE
     ## 6 8.66        H    100      TRUE
 
-Now that the data are read in, the following code loads the `oxydebt` package for the `run_full_model` and `plot_fit` functions.
+Now that the data are read in, the following code loads the `oxydebt` package for the `doonefit_full` and `plot_fit` functions.
 
 ``` r
 # load libraries
