@@ -1,6 +1,6 @@
 ---
 title: "ReadMe"
-author: ICES
+author: Colin Millar
 date: 5th Novrember 2016
 output:
   md_document:
@@ -21,17 +21,11 @@ source("scripts/OxygenDebt/01_input.R")
 
 This will create the folder `model` and the file `model/input.csv`.  
 
-```{r example_norun, eval=FALSE}
+```{r example_norun}
 # read in data
 oxy <- read.csv("model/input.csv")
 head(oxy)
 ```
-
-```{r oxysetup, echo=FALSE}
-oxy <- read.csv("../../model/input.csv")
-head(oxy)
-```
-
 
 Now that the data are read in, the following code loads the `oxydebt` package for the `doonefit_full` and `plot_fit` functions.  
 
