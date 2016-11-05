@@ -1,3 +1,9 @@
+-   [HEAT assessment tool](#heat-assessment-tool)
+    -   [Oxygen Debt Indicator Calculation Scripts](#oxygen-debt-indicator-calculation-scripts)
+
+HEAT assessment tool
+====================
+
 Oxygen Debt Indicator Calculation Scripts
 -----------------------------------------
 

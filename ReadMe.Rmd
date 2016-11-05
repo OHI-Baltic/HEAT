@@ -5,11 +5,15 @@ date: 5th Novrember 2016
 output:
   md_document:
     variant: markdown_github
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# HEAT assessment tool
 
 ## Oxygen Debt Indicator Calculation Scripts
 
