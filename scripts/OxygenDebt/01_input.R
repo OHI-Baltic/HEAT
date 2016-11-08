@@ -18,7 +18,7 @@ if (!dir.exists("input")) dir.create("input")
 
 # quick function to download input data and save
 get_input <- function(what, force = FALSE) {
-  if (!file.exists(what) | force) {
+  if (!file.exists(what) || force) {
     download.file(paste0(ftp, what), destfile = what)
   }
 }
