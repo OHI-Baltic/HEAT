@@ -1,7 +1,7 @@
 ---
 title: "ReadMe"
 author: Colin Millar
-date: 5th Novrember 2016
+date: 5th November 2016
 output:
   md_document:
     variant: markdown_github

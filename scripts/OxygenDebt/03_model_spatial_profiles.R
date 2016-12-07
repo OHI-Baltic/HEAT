@@ -5,7 +5,7 @@
 # ----------------------------
 
 # load packages etc.
-source("scripts/header.R")
+source("scripts/OxygenDebt/header.R")
 
 # read profile fits
 profiles <- read.csv("output/profiles.csv")
@@ -72,7 +72,9 @@ profiles$date <- ymd(with(profiles, paste(Year, Month, Day, sep = "-")))
 profiles$yday <- yday(profiles$date)
 
 # set model
-form <- y ~ s(Longitude, Latitude, k = 20) + s(yday, bs = "cc", k = 6) + factor(Year)
+form <- y ~ s(Longitude, Latitude, k = 20) + 
+            s(yday, bs = "cc", k = 6, by = Basin) + 
+            factor(Year)*factor(Basin)
 
 # fit gam and rasterise and save
 for (what in c("sali_surf", "sali_dif", "halocline", "depth_gradient", "O2def_below_halocline", "O2def_slope_below_halocline")) {
@@ -85,3 +87,19 @@ for (what in c("sali_surf", "sali_dif", "halocline", "depth_gradient", "O2def_be
 }
 
 
+# NOTES:
+# * predict over x, y for each year:
+# *     depth changepoint 2 (lower halocline depth)
+# *     O2_deficit at lower halocline
+# *     O2_slope slope
+#
+# From these surfaces, compute volume specific oxygen deficit.
+# *    CHECK WITH SAS CODE:  numerically integrate over depth, using bathymetry.
+# *         calculate O2 decifit by 1m^3, from depth changepoint 2 to bathymetric depth.
+# *         compute volume of prediction "transect"
+# *         finally compute total O2 deficit / total volume
+# *         this results in a surface of volume specific oxygen debt.
+
+# * Other useful quantities are - oxygen deficit at maximum depth.
+
+# * 

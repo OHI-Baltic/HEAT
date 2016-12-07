@@ -5,7 +5,7 @@
 # ----------------------------
 
 # load packages etc.
-source("scripts/header.R")
+source("scripts/OxygenDebt/header.R")
 
 # make sure figures folder exists
 dir.create("figures")

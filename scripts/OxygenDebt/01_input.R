@@ -5,7 +5,7 @@
 # ----------------------------
 
 # load packages etc.
-source("scripts/header.R")
+source("scripts/OxygenDebt/header.R")
 
 
 # download data from ftp site ------------------------------------------
@@ -73,7 +73,10 @@ oxy <- oxy[order(oxy$ID),]
 rm(ice, ctd)
 
 # retain check for duplicate observations
-# todo
+# todo:
+#   * retain a log of duplicates for checking by ICES or institutes / experts
+#   * could provide a report of duplicates / near duplicates.
+#   
 
 # only keep units 6-11, 13
 form_Assessment_Unit <- function(i) gsub(" ", "0", sprintf("SEA-%3i", i))
@@ -101,6 +104,7 @@ oxy <- oxy[c("ID", "Assessment_Unit", "Year",
 oxy$n_Oxygen <- c(with(oxy, tapply(Oxygen, ID, function(x) sum(!is.na(x))))[paste(oxy$ID)])
 
 # keep only stations with oxygen data
+## NB now this is not appropriate
 oxy <- subset(oxy, n_Oxygen > 0)
 
 # compute max (non NA) oxygen sample depth per station

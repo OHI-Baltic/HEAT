@@ -9,5 +9,5 @@
 devtools::install_github("ices-tools-dev/oxydebt")
 
 # install other dependencies used in the analysis
-pkgs <- c("mgcv", "lubridate", "MASS", "sp", "rgdal", "raster", "dplyr")
+pkgs <- c("mgcv", "lubridate", "MASS", "sp", "rgdal", "raster", "dplyr", "gplots")
 install.packages(pkgs)
