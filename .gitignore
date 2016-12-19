@@ -3,8 +3,8 @@ documentation/*
 analysis/*
 data/*
 
-scripts/working.R
-scripts/*_convert_plots_to_png.R
+scripts/Oxydebt/working.R
+scripts/Oxydebt/*_convert_plots_to_png.R
 
 .Rproj.user
 *.Rproj
