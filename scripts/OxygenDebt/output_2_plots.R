@@ -4,6 +4,8 @@
 #
 # ----------------------------
 
+if (FALSE) {
+
 # load packages etc.
 source("scripts/OxygenDebt/header.R")
 
@@ -248,5 +250,5 @@ for (i in unique(indicators$Assessment_Unit)) {
 dev.off()
 
 
-
+}
 
