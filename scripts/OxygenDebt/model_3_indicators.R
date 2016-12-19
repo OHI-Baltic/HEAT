@@ -34,6 +34,7 @@ bathy <- bathy[bathy$Basin %in% levels(gams[[1]]$var.summary$Basin),]
 # quick plot
 if (FALSE) {
   plot(bathy, col = rev(viridis::magma(50, alpha=0.5))[cut(bathy$depth, 50)], pch = ".")
+  plot(helcom, add = TRUE, border = "red")
 }
 
 # NOTES:
@@ -42,7 +43,8 @@ if (FALSE) {
 # *     O2_deficit at lower halocline
 # *     O2_slope slope
 
-#g <- gams[[1]]
+#names(gams)
+#g <- gams[[3]]
 predict_surfaces <- function(g) {
 
   # predict
@@ -91,7 +93,8 @@ predict_surfaces <- function(g) {
 }
 
 # fit surfaces for each
-what <- c("sali_surf", "sali_dif", "halocline", "depth_gradient",
+what <- c(#"sali_surf", "sali_dif",
+          "halocline", "depth_gradient",
           "O2def_below_halocline", "O2def_slope_below_halocline")
 
 surfaces <-
@@ -114,14 +117,14 @@ lapply(surfaces, summary)
 
 # * Other useful quantities are - oxygen deficit at maximum depth.
 pars <-
-  sapply(2010:2015,
+  sapply(paste(2010:2015),
     function(y) {
       out <-
-        data.frame(halocline = surfaces$halocline[,paste(y)],
-                   depth_change_point1 = surfaces$depth_change_point1[,paste(y)],
-                   depth_change_point2 = surfaces$depth_change_point2[,paste(y)],
-                   O2def_below_halocline       = surfaces$O2def_below_halocline[,paste(y)],
-                   O2def_slope_below_halocline = surfaces$O2def_slope_below_halocline[,paste(y)],
+        data.frame(halocline = surfaces$halocline[,y],
+                   depth_change_point1 = surfaces$depth_change_point1[,y],
+                   depth_change_point2 = surfaces$depth_change_point2[,y],
+                   O2def_below_halocline       = surfaces$O2def_below_halocline[,y],
+                   O2def_slope_below_halocline = surfaces$O2def_slope_below_halocline[,y],
                    depth = bathy$depth,
                    Basin = bathy$Basin,
                    x = coordinates(bathy)[,1],
@@ -134,18 +137,17 @@ pars <-
         sapply(1:nrow(out),
                function(i) {
                  depths <- seq(out$halocline[i], out$depth[i], by = 1)
-                 vol <- length(depths) # m^3
-                 o2 <- sum(oxy_profile(depths, out[i,]))
-                 # return
-                 o2 / vol
+                 mean(oxy_profile(depths, out[i,])) # sum(o2) / volume
                })
       out
     },
     simplify = FALSE)
 
 if (FALSE) {
+  lapply(pars, summary)
+
   # plot surfaces to check
-  tmp <- pars[[1]]
+  tmp <- pars[["2010"]]
   coordinates(tmp) <- c("x", "y")
   proj4string(tmp) <- sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
@@ -154,6 +156,11 @@ if (FALSE) {
 
   plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$O2def_below_halocline, 50)], pch = ".")
   plot(helcom, add = TRUE, border = "red")
+
+  plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$oxygendebt, 50)], pch = ".")
+  plot(helcom, add = TRUE, border = "red")
+
+  sapply(pars, function(x) summary(x$oxygendebt))
 }
 
 # write out
