@@ -1,7 +1,7 @@
 
 # load header function into top of search list
-while("oxydebt_funs" %in% search()) detach("oxydebt_funs")
-sys.source("scripts/OxygenDebt/zz_header.R", envir = attach(NULL, name = "oxydebt_funs"))
+while("tools:oxydebt_funs" %in% search()) detach("tools:oxydebt_funs")
+sys.source("scripts/OxygenDebt/zz_header.R", envir = attach(NULL, name = "tools:oxydebt_funs"))
 
 # data
 source("scripts/OxygenDebt/data_1_download.R")

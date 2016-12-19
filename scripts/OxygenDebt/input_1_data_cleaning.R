@@ -58,8 +58,8 @@ if (FALSE) {
 
 
 # set up covariates for modelling
-oxy$date <- ymd(with(oxy, paste(Year, Month, Day, sep = "-")))
-oxy$yday <- yday(oxy$date)
+oxy$date <- lubridate::ymd(with(oxy, paste(Year, Month, Day, sep = "-")))
+oxy$yday <- lubridate::yday(oxy$date)
 oxy$Basin <- factor(oxy$Basin)
 
 # write data --------------------

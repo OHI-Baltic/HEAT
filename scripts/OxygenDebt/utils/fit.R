@@ -149,10 +149,10 @@ doonefit_full <- function(data, debug = FALSE, ID) {
     # linear regression with Gaussian errors, and left censored data.
     seg3_model <-
       suppressWarnings(
-        survreg(Surv(Oxygen_deficit, !censor, type='right') ~ Depth - 1,
+        survival::survreg(survival::Surv(Oxygen_deficit, !censor, type='right') ~ Depth - 1,
                             data=O2_slope,
                             dist='gaussian',
-                            control = survreg.control(maxiter=1000))
+                            control = survival::survreg.control(maxiter=1000))
       )
     # TODO add in convergence warning if given
     # fit$notes <- ...

@@ -77,10 +77,10 @@ oxy <- oxy[c("ID", "Year", "Month", "Day",
 # duplicate Long and Lat, for conversion
 oxy[c("x", "y")] <- data.frame(x = oxy$Longitude, y = oxy$Latitude)
 # make into spatialDataFrame and define coordinage reference system (CRS)
-coordinates(oxy) <- ~ x + y
-crs(oxy) <- sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+sp::coordinates(oxy) <- ~ x + y
+sp::proj4string(oxy) <- sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 # transform to umt34
-oxy <- spTransform(oxy, sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+oxy <- sp::spTransform(oxy, sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 
 
 # ----------------------------
@@ -90,10 +90,10 @@ oxy <- spTransform(oxy, sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_de
 # ----------------------------
 
 # read helcom and drop non SEA areas
-helcom <- readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
+helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # join points with polygons
-oxy.helcom <- over(oxy, helcom)
+oxy.helcom <- sp::over(oxy, helcom)
 
 # convet back to dataframe
 oxy <- as.data.frame(oxy)
@@ -110,7 +110,7 @@ rm(helcom, oxy.helcom)
 aux <- read.dbexport("data/OxygenDebt/auxilliary.txt", sep = "\t")
 
 # merge
-oxy <- left_join(oxy, aux, by = "Basin")
+oxy <- dplyr::left_join(oxy, aux, by = "Basin")
 rm(aux)
 
 

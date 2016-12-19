@@ -11,23 +11,26 @@ function(phase = c("data", "input", "model", "output"))
   # phase specific packages -------------------
   pkg <-
     switch(phase,
-      data = c( "dplyr", "rgeos"),
-      input = c( "lubridate"),
-      model = c( "survival", "mgcv", "lubridate", "MASS", "dplyr"),
+      data = c("sp", "rgdal", "rgeos", "dplyr"),
+      input = c("lubridate"),
+      model = c("stats", "survival", "dplyr", "mgcv", "sp", "rgdal", "tidyr"),
       output = character(0)
     )
 
   # common packages -------------------
-  pkg <- unique(c(pkg, "sp", "rgdal", "raster", "gplots", "viridis"))
+  pkg <- unique(c(pkg, "viridis", "gplots"))
 
-  # install other dependencies used in the analysis
+  # install dependencies used in the analysis
   newpkg <- setdiff(pkg, installed.packages())
   if (length(newpkg)) install.packages(newpkg, dependencies = TRUE, quiet = TRUE)
 
-  # load packages -------------------
-  tmp <- sapply(pkg, require, character.only = TRUE, quietly = TRUE)
+  # always load certain packages -------------------
+  always_load <- c("mgcv")
+  if (always_load %in% pkg) {
+    tmp <- sapply(intersect(always_load, pkg), library, character.only = TRUE, quietly = TRUE, pos = 3)
+  }
 
-  # load utils into oxydebt_funs space
+  # load utils into oxydebt_funs namespace
   tmp <-
     sapply(dir("scripts/OxygenDebt/utils"),
            function(x) {

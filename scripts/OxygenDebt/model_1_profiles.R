@@ -35,8 +35,19 @@ rownames(out) <- paste(out$ID)
 # join this onto the profiles
 profiles <- cbind.data.frame(profiles, out[paste(profiles$ID),-1])
 
+# select which data is reliable
+profiles <- profiles[!is.na(profiles$depth_change_point2.se),]
+# only use profiles that are based on an estimate of the lower halocline estimate with +- 20m accuracy
+profiles <- profiles[profiles$depth_change_point2.se < 10,]
+# only use profiles that are based on an estimate of the salinity difference estimate with +- 10 accuracy
+profiles <- profiles[profiles$sali_dif.se < 5,]
+# drop off badly estmated O2 def slopes
+profiles <- profiles[profiles$O2def_slope_below_halocline < 100,]
+
 # check
-lapply(profiles, summary)
+if (FALSE) {
+  lapply(profiles, summary)
+}
 
 # write out
 write.csv(file = "analysis/output/OxygenDebt/profiles.csv", profiles, row.names = FALSE)

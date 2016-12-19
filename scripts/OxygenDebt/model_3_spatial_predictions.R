@@ -33,8 +33,8 @@ bathy <- bathy[bathy$Basin %in% levels(gams[[1]]$var.summary$Basin),]
 
 # quick plot
 if (FALSE) {
-  plot(bathy, col = rev(viridis::magma(50, alpha=0.5))[cut(bathy$depth, 50)], pch = ".")
-  plot(helcom, add = TRUE, border = "red")
+  sp::plot(bathy, col = rev(viridis::magma(50, alpha=0.5))[cut(bathy$depth, 50)], pch = ".")
+  sp::plot(helcom, add = TRUE, border = "red")
 }
 
 # NOTES:
@@ -49,7 +49,7 @@ predict_surfaces <- function(g) {
 
   # predict
   # create prediction data
-  pred <- rename(data.frame(bathy), x = coords.x1, y = coords.x2)
+  pred <- dplyr::rename(data.frame(bathy), x = coords.x1, y = coords.x2)
   pred$yday <- 1
   pred$Year <- 2010
 
@@ -72,8 +72,8 @@ predict_surfaces <- function(g) {
 
   # create design matrix for year and Basin combinations (without intercept)
   Xy <- predict(g, newdata = pred_y, type = "lpmatrix")
-  Xy[,grep("yday",colnames(Xy))] <- 0
-  Xy[,grep("x,y",colnames(Xy))] <- 0
+  Xy[,grep("yday", colnames(Xy))] <- 0
+  Xy[,grep("x,y", colnames(Xy))] <- 0
   Xy[,"(Intercept)"] <- 0
 
   # make predictions
@@ -82,7 +82,7 @@ predict_surfaces <- function(g) {
   # form surfaces
   out <-
     sapply(2010:2015, function(y) {
-      spatial + left_join(pred[c("x", "y", "Basin")],
+      spatial + dplyr::left_join(pred[c("x", "y", "Basin")],
                           pred_y[pred_y$Year == y,c("Year", "Basin","fit")],
                           by = "Basin")$fit
     })
@@ -106,7 +106,10 @@ surfaces <-
 surfaces$depth_change_point1 <- surfaces$halocline - 1.0 * surfaces$depth_gradient
 surfaces$depth_change_point2 <- surfaces$halocline + 1.0 * surfaces$depth_gradient
 
-lapply(surfaces, summary)
+# check
+if (FALSE) {
+  lapply(surfaces, summary)
+}
 
 # From these surfaces, compute volume specific oxygen deficit.
 # *    CHECK WITH SAS CODE:  numerically integrate over depth, using bathymetry.
@@ -127,8 +130,8 @@ pars <-
                    O2def_slope_below_halocline = surfaces$O2def_slope_below_halocline[,y],
                    depth = bathy$depth,
                    Basin = bathy$Basin,
-                   x = coordinates(bathy)[,1],
-                   y = coordinates(bathy)[,2])
+                   x = sp::coordinates(bathy)[,1],
+                   y = sp::coordinates(bathy)[,2])
 
       # only make predctions where depth extends below halocline
       out <- out[out$halocline < out$depth,]
@@ -143,27 +146,29 @@ pars <-
     },
     simplify = FALSE)
 
+# checks
 if (FALSE) {
   lapply(pars, summary)
 
   # plot surfaces to check
   tmp <- pars[["2010"]]
-  coordinates(tmp) <- c("x", "y")
-  proj4string(tmp) <- sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  sp::coordinates(tmp) <- c("x", "y")
+  sp::proj4string(tmp) <- sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
-  plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$halocline, 50)], pch = ".")
-  plot(helcom, add = TRUE, border = "red")
+  sp::plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$halocline, 50)], pch = ".")
+  sp::plot(helcom, add = TRUE, border = "red")
 
-  plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$O2def_below_halocline, 50)], pch = ".")
-  plot(helcom, add = TRUE, border = "red")
+  sp::plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$O2def_below_halocline, 50)], pch = ".")
+  sp::plot(helcom, add = TRUE, border = "red")
 
-  plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$oxygendebt, 50)], pch = ".")
-  plot(helcom, add = TRUE, border = "red")
+  sp::plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$oxygendebt, 50)], pch = ".")
+  sp::plot(helcom, add = TRUE, border = "red")
 
   sapply(pars, function(x) summary(x$oxygendebt))
 }
 
-# write out
+# write out --------------
+
 save(pars, file = "analysis/output/OxygenDebt/gam_predictions.RData")
 
 
