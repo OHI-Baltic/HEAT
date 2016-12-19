@@ -27,10 +27,11 @@ profiles <- profiles[!is.na(profiles$depth_change_point2.se),]
 profiles <- profiles[profiles$depth_change_point2.se < 10,]
 # only use profiles that are based on an estimate of the salinity difference estimate with +- 10 accuracy
 profiles <- profiles[profiles$sali_dif.se < 5,]
+# drop off badly estmated O2 def slopes
+profiles <- profiles[profiles$O2def_slope_below_halocline < 100,]
 
 # convert to factor
 profiles$Basin <- factor(profiles$Basin)
-levels(profiles$Basin)
 
 #lapply(profiles, summary, na.rm = TRUE)
 
@@ -41,14 +42,13 @@ form <- val ~ s(x, y, k = 20) +
 
 # fit gams
 what <- c("sali_surf", "sali_dif", "halocline", "depth_gradient",
-          "depth_change_point1", "depth_change_point2",
           "O2def_below_halocline", "O2def_slope_below_halocline")
 gams <-
   lapply(what,
          function(what) {
            #cat("\rfitting", what, rep(" ", 50)); flush.console()
            profiles$val <- profiles[[what]]
-           gam(form, data = profiles, drop.unused.levels = FALSE)
+           gam(form, data = profiles, drop.unused.levels = FALSE, )
          })
 names(gams) <- what
 

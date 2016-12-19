@@ -19,8 +19,9 @@ if (check != "gams") {
 }
 rm(check)
 
-# read assessment unit shape file
-helcom_area <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
+
+# read helcom assessment areas
+helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # read depth layer (spatial points) for prediction
 bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
@@ -33,7 +34,6 @@ bathy <- bathy[bathy$Basin %in% levels(gams[[1]]$var.summary$Basin),]
 # quick plot
 if (FALSE) {
   plot(bathy, col = rev(viridis::magma(50, alpha=0.5))[cut(bathy$depth, 50)], pch = ".")
-  plot(helcom_area, border = "red", add = TRUE)
 }
 
 # NOTES:
@@ -92,13 +92,18 @@ predict_surfaces <- function(g) {
 
 # fit surfaces for each
 what <- c("sali_surf", "sali_dif", "halocline", "depth_gradient",
-          "depth_change_point1", "depth_change_point2",
           "O2def_below_halocline", "O2def_slope_below_halocline")
 
 surfaces <-
   sapply(what,
     function(what) predict_surfaces(gams[[what]]),
     simplify = FALSE)
+
+# calculate derived quantities
+surfaces$depth_change_point1 <- surfaces$halocline - 1.0 * surfaces$depth_gradient
+surfaces$depth_change_point2 <- surfaces$halocline + 1.0 * surfaces$depth_gradient
+
+lapply(surfaces, summary)
 
 # From these surfaces, compute volume specific oxygen deficit.
 # *    CHECK WITH SAS CODE:  numerically integrate over depth, using bathymetry.
@@ -118,7 +123,10 @@ pars <-
                    O2def_below_halocline       = surfaces$O2def_below_halocline[,paste(y)],
                    O2def_slope_below_halocline = surfaces$O2def_slope_below_halocline[,paste(y)],
                    depth = bathy$depth,
-                   Basin = bathy$Basin)
+                   Basin = bathy$Basin,
+                   x = coordinates(bathy)[,1],
+                   y = coordinates(bathy)[,2])
+
       # only make predctions where depth extends below halocline
       out <- out[out$halocline < out$depth,]
 
@@ -135,9 +143,21 @@ pars <-
     },
     simplify = FALSE)
 
+if (FALSE) {
+  # plot surfaces to check
+  tmp <- pars[[1]]
+  coordinates(tmp) <- c("x", "y")
+  proj4string(tmp) <- sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
-# calculate average oxygen debt by Basin
-sapply(pars, function(parsy) with(parsy, tapply(oxygendebt, Basin, mean)))
+  plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$halocline, 50)], pch = ".")
+  plot(helcom, add = TRUE, border = "red")
+
+  plot(tmp, col = rev(viridis::magma(50, alpha=0.5))[cut(tmp$O2def_below_halocline, 50)], pch = ".")
+  plot(helcom, add = TRUE, border = "red")
+}
+
+# write out
+save(pars, file = "analysis/output/OxygenDebt/gam_predictions.RData")
 
 
 # done -------------------

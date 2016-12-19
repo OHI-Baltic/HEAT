@@ -35,6 +35,9 @@ rownames(out) <- paste(out$ID)
 # join this onto the profiles
 profiles <- cbind.data.frame(profiles, out[paste(profiles$ID),-1])
 
+# check
+lapply(profiles, summary)
+
 # write out
 write.csv(file = "analysis/output/OxygenDebt/profiles.csv", profiles, row.names = FALSE)
 
