@@ -14,8 +14,14 @@ header("output")
 t0 <- proc.time()
 
 # load gam fits ('gams')
-check <- load("analysis/output/OxygenDebt/gam_surfaces.RData")
+check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
 if (check != "pars") {
-  stop("Error loading gam fits!\n\tTry rerunning model_3_indicators.R")
+  stop("Error loading gam predictions!\n\tTry rerunning model_3_indicators.R")
 }
 rm(check)
+
+
+sapply(pars, function(parsy) {
+  with(parsy, tapply(oxygendebt, Basin, mean, na.rm = TRUE))
+})
+
