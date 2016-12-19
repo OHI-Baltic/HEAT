@@ -38,15 +38,19 @@ profiles <- cbind.data.frame(profiles, out[paste(profiles$ID),-1])
 # select which data is reliable
 profiles <- profiles[!is.na(profiles$depth_change_point2.se),]
 # only use profiles that are based on an estimate of the lower halocline estimate with +- 20m accuracy
-profiles <- profiles[profiles$depth_change_point2.se < 10,]
+profiles <- profiles[-which(profiles$depth_change_point2.se > 10),]
 # only use profiles that are based on an estimate of the salinity difference estimate with +- 10 accuracy
-profiles <- profiles[profiles$sali_dif.se < 5,]
+profiles <- profiles[-which(profiles$sali_dif.se > 5),]
 # drop off badly estmated O2 def slopes
-profiles <- profiles[profiles$O2def_slope_below_halocline < 100,]
+profiles <- profiles[-which(profiles$O2def_slope_below_halocline > 100),]
 
 # check
 if (FALSE) {
   lapply(profiles, summary)
+
+  helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas")
+  sp::plot(helcom, col = gplots::rich.colors(nrow(helcom), alpha = 0.5))
+  points(makeSpatial(profiles), cex = 0.5)
 }
 
 # write out

@@ -107,12 +107,14 @@ rm(helcom, oxy.helcom)
 # ----------------------------
 
 # read in auxilliary info
-aux <- read.dbexport("data/OxygenDebt/auxilliary.txt", sep = "\t")
+aux <- read.csv("data/OxygenDebt/auxilliary.csv")
 
 # merge
 oxy <- dplyr::left_join(oxy, aux, by = "Basin")
 rm(aux)
 
+# drop regions that have no auxilliary info
+oxy <- oxy[!is.na(oxy$surfacedepth1),]
 
 # ----------------------------
 #

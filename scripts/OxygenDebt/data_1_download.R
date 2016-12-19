@@ -39,7 +39,7 @@ get_input <- function(from, force = TRUE, zipped = FALSE) {
 }
 
 # the list of input files required to calculate the indicator
-get_input("data/OxygenDebt/auxilliary.txt")
+get_input("data/OxygenDebt/auxilliary.csv")
 
 # download to local folder
 tmp <- sapply(c("data/OxygenDebt/BALTIC_BATHY_BALTSEM.zip",
