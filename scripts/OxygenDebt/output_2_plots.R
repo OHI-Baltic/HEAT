@@ -4,53 +4,41 @@
 #
 # ----------------------------
 
-if (FALSE) {
-
 # load packages etc.
-source("scripts/OxygenDebt/header.R")
+header("output")
 
-# make sure figures folder exists
-dir.create("figures")
 
 # read data -------------------------------------------
 
-oxy <- read.csv("model/input.csv")
-profiles <- read.csv("output/profiles.csv")
+oxy <- read.csv("analysis/input/OxygenDebt/oxy_clean.csv")
+profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
 
 # read assessment unit shape file
-assessmentArea <- rgdal::readOGR("input", "AssessmentUnit_20112016Polygon")
-names(assessmentArea) <- c("Assessment_Unit", "Basin")
-# keep only SEA units ?
-assessmentArea <- assessmentArea[grepl("SEA-", assessmentArea$Assessment_Unit),]
+helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas")
 
-# make a spatial data.frame from oxy
-#makeSpatialOxy <- function(x) {
-#  x <- unique(x[c("StationID", "Latitude", "Longitude")])
-#  coordinates(x) <- ~ Longitude + Latitude
-#  proj4string(x) <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-#  x
-#}
-#spoxy <- makeSpatialOxy(oxy)
+# make a spatial data.frame from oxy and profiles
+spoxy <- makeSpatial(oxy)
+spprofiles <- makeSpatial(profiles)
+
 
 # read depth profile
-#bathy <- raster::raster("input/GMT_GEBCO_08_BalticSea.asc")
-#sp::proj4string(bathy) <- sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-# trim to extent of assessment units
-#bathy <- raster::mask(bathy, assessmentArea)
+bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry")
+
+
 
 
 # assessment map ------------------------------------------
 
-pdf("figures/assessment_areas.pdf", onefile = TRUE, paper = "a4")
+pdf("analysis/output/OxygenDebt/assessment_areas.pdf", onefile = TRUE, paper = "a4")
   # plot regions with names
-  plot(assessmentArea, col = gplots::rich.colors(17, alpha = 0.5), border = grey(0.4))
-  text(sp::coordinates(assessmentArea),
-       labels = paste(assessmentArea$Assessment_Unit, assessmentArea$Basin, sep = "\n"),
-       cex = 0.4)
+  sp::plot(helcom, col = gplots::rich.colors(nrow(helcom), alpha = 0.5), border = grey(0.4))
+  text(sp::coordinates(helcom),
+       labels = helcom$Basin,
+       cex = 0.7)
 
   # plot regions with station locations
-  #plot(assessmentArea, col = gplots::rich.colors(17, alpha = 0.5))
-  #plot(spoxy, cex = 0.5, add = TRUE, pch = 1)
+  sp::plot(helcom, col = gplots::rich.colors(nrow(helcom), alpha = 0.5))
+  sp::plot(spoxy, cex = 0.5, add = TRUE, pch = 1)
 
   # plot bathymetry
   #plot(bathy, col = colorRampPalette(c("darkblue", "lightblue"))(255))
