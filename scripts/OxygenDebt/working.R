@@ -3,11 +3,6 @@
 while("oxydebt_funs" %in% search()) detach("oxydebt_funs")
 sys.source("scripts/OxygenDebt/zz_header.R", envir = attach(NULL, name = "oxydebt_funs"))
 
-# reinstall oxydebt
-devtools::document("../oxydebt")
-devtools::check("../oxydebt")
-devtools::install("../oxydebt")
-
 # data
 source("scripts/OxygenDebt/data_1_download.R")
 source("scripts/OxygenDebt/data_2_make_assessment_area.R")
