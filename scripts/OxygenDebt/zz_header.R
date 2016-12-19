@@ -11,19 +11,14 @@ function(phase = c("data", "input", "model", "output"))
   # phase specific packages -------------------
   pkg <-
     switch(phase,
-      data = c("oxydebt", "dplyr", "rgeos"),
-      input = c("oxydebt", "lubridate"),
-      model = c("oxydebt", "mgcv", "lubridate", "MASS", "dplyr"),
+      data = c( "dplyr", "rgeos"),
+      input = c( "lubridate"),
+      model = c( "mgcv", "lubridate", "MASS", "dplyr"),
       output = character(0)
     )
 
   # common packages -------------------
   pkg <- unique(c(pkg, "sp", "rgdal", "raster", "gplots", "viridis"))
-
-  # install the oxygen debt functions
-  if (!"oxydebt" %in% installed.packages()) {
-    devtools::install_github("ices-tools-dev/oxydebt", quiet = TRUE)
-  }
 
   # install other dependencies used in the analysis
   newpkg <- setdiff(pkg, installed.packages())
@@ -31,6 +26,13 @@ function(phase = c("data", "input", "model", "output"))
 
   # load packages -------------------
   tmp <- sapply(pkg, require, character.only = TRUE, quietly = TRUE)
+
+  # load utils into oxydebt_funs space
+  tmp <-
+    sapply(dir("scripts/OxygenDebt/utils"),
+           function(x) {
+           sys.source(paste0("scripts/OxygenDebt/utils/", x), envir = environment(header))
+           })
 
   # clear workspace -------------------
   rm(list = ls(envir = .GlobalEnv), envir = .GlobalEnv)
