@@ -13,8 +13,8 @@ function(phase = c("data", "input", "model", "output"))
     switch(phase,
       data = c("sp", "rgdal", "rgeos", "dplyr"),
       input = c("lubridate"),
-      model = c("stats", "survival", "dplyr", "mgcv", "sp", "rgdal", "tidyr"),
-      output = character(0)
+      model = c("stats", "survival", "dplyr", "mgcv", "sp", "rgdal"),
+      output = c("tidyr", "dplyr")
     )
 
   # common packages -------------------
