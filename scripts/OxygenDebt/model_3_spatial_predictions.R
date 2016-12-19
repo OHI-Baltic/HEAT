@@ -27,8 +27,9 @@ helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose =
 bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
 
 # drop regions not in models!
-bathy <- bathy[bathy$Basin %in% levels(gams[[1]]$var.summary$Basin),]
-
+if ("Basin" %in% names(gams[[1]]$var.summary)) {
+  bathy <- bathy[bathy$Basin %in% levels(gams[[1]]$var.summary$Basin),]
+}
 
 
 # quick plot
@@ -51,41 +52,17 @@ predict_surfaces <- function(g) {
   # create prediction data
   pred <- dplyr::rename(data.frame(bathy), x = coords.x1, y = coords.x2)
   pred$yday <- 1
-  pred$Year <- 2010
 
-  # create design matrix for spatial variation only (with intercept)
-  Xs <- predict(g, newdata = pred, type = "lpmatrix")
-  Xs[,grep("yday",colnames(Xs))] <- 0
-  Xs[,grep("Year",colnames(Xs))] <- 0
+  pred_one_year <- function(y) {
+    # create design matrix for spatial  and annual variation only
+    Xs <- predict(g, newdata = dplyr::mutate(pred, Year = y), type = "lpmatrix")
+    Xs[,grep("yday",colnames(Xs))] <- 0
 
-  # make predictions
-  spatial <- c(Xs %*% coef(g))
+    # make predictions
+    c(Xs %*% coef(g))
+  }
 
-  # predict region part:
-  # create prediction data
-  pred_y <- expand.grid(Year = 2010:2015,
-                        yday = 1,
-                        x = 0,
-                        y = 0,
-                        Basin = levels(g$var.summary$Basin),
-                        stringsAsFactors = FALSE)
-
-  # create design matrix for year and Basin combinations (without intercept)
-  Xy <- predict(g, newdata = pred_y, type = "lpmatrix")
-  Xy[,grep("yday", colnames(Xy))] <- 0
-  Xy[,grep("x,y", colnames(Xy))] <- 0
-  Xy[,"(Intercept)"] <- 0
-
-  # make predictions
-  pred_y$fit <- c(Xy %*% coef(g))
-
-  # form surfaces
-  out <-
-    sapply(2010:2015, function(y) {
-      spatial + dplyr::left_join(pred[c("x", "y", "Basin")],
-                          pred_y[pred_y$Year == y,c("Year", "Basin","fit")],
-                          by = "Basin")$fit
-    })
+  out <- sapply(2010:2015, pred_one_year)
   colnames(out) <- 2010:2015
 
   # return
