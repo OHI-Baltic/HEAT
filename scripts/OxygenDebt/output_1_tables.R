@@ -13,7 +13,7 @@ header("output")
 # start timer
 t0 <- proc.time()
 
-# load gam fits ('gams')
+# load gam predictions ('pars')
 check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
 if (check != "pars") {
   stop("Error loading gam predictions!\n\tTry rerunning model_3_spatial_predictions.R")

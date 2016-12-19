@@ -25,9 +25,13 @@ profiles$Basin <- factor(profiles$Basin)
 # ----------------------------
 
 # set model
-form <- val ~ s(x, y, k = 20) +
-              s(yday, bs = "cc", k = 6, by = Basin) +
-              Basin*factor(Year)
+#form <- val ~ s(x, y, k = 20) +
+#              s(yday, bs = "cc", k = 6, by = Basin) +
+#              s(Basin, bs = "re") +
+#              s(Year, m = 1, k = 5, by = Basin)
+
+form <- val ~ te(x, y, Year, k = c(20, 5), d = c(2,1), m = c(2,1), bs = c("tp", "tp")) +
+              te(x, y, yday, k = c(10, 6), d = c(2,1), bs = c("tp", "cc"))
 
 # fit gams
 what <- c("sali_surf", "sali_dif", "halocline", "depth_gradient",

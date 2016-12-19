@@ -19,4 +19,4 @@ source("scripts/OxygenDebt/model_3_spatial_predictions.R")
 
 # output
 source("scripts/OxygenDebt/output_1_tables.R")
-#source("scripts/OxygenDebt/output_2_plots.R")
+source("scripts/OxygenDebt/output_2_plots.R")

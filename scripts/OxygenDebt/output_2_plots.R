@@ -20,7 +20,6 @@ helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas")
 spoxy <- makeSpatial(oxy)
 spprofiles <- makeSpatial(profiles)
 
-
 # read depth profile
 bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry")
 
@@ -29,7 +28,8 @@ bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry")
 
 # assessment map ------------------------------------------
 
-pdf("analysis/output/OxygenDebt/assessment_areas.pdf", onefile = TRUE, paper = "a4")
+pdf("analysis/output/OxygenDebt/spatial_plots.pdf", onefile = TRUE, paper = "a4")
+
   # plot regions with names
   sp::plot(helcom, col = gplots::rich.colors(nrow(helcom), alpha = 0.5), border = grey(0.4))
   text(sp::coordinates(helcom),
@@ -38,15 +38,13 @@ pdf("analysis/output/OxygenDebt/assessment_areas.pdf", onefile = TRUE, paper = "
 
   # plot regions with station locations
   sp::plot(helcom, col = gplots::rich.colors(nrow(helcom), alpha = 0.5))
-  sp::plot(spoxy, cex = 0.5, add = TRUE, pch = 1)
+  sp::plot(spprofiles, cex = 0.5, add = TRUE, pch = 1, col = "darkred")
 
   # plot bathymetry
-  #plot(bathy, col = colorRampPalette(c("darkblue", "lightblue"))(255))
+  sp::plot(bathy, col = gplots::rich.colors(50, alpha=0.5)[cut(bathy$depth, 50)], pch = ".")
+  sp::plot(helcom, border = "red", add = TRUE)
+
 dev.off()
-
-
-
-
 
 # data and model plots ------------------------------------------
 
@@ -78,11 +76,11 @@ plot_model <- function(wk, fit, xlim, ylim) {
 
 # data plots -----------------------
 
-pdf(paste("figures/data_plots.pdf"), onefile = TRUE, paper = "a4")
+pdf(paste("analysis/output/OxygenDebt/data_plots.pdf"), onefile = TRUE, paper = "a4")
 
-  for (i in sort(unique(oxy$Assessment_Unit))) {
+  for (i in sort(unique(oxy$Basin))) {
     par(mfrow = c(5, 4), mar = c(0,0,0,0), oma = c(1.5,0,0,0))
-    data <- subset(oxy, Assessment_Unit == i)
+    data <- subset(oxy, Basin == i)
 
     # plot params by assessment unit
     ylim <- c(max(data$Depth) + 10, -10)
@@ -102,22 +100,24 @@ pdf(paste("figures/data_plots.pdf"), onefile = TRUE, paper = "a4")
   }
 dev.off()
 
+
+
 # model plots -----------------------
 
-pdf(paste("figures/model_plots.pdf"), onefile = TRUE, paper = "a4")
+pdf(paste("analysis/output/OxygenDebt/model_plots.pdf"), onefile = TRUE, paper = "a4")
 
-for (i in sort(unique(oxy$Assessment_Unit))) {
+for (i in sort(unique(profiles$Basin))) {
   par(mfrow = c(5, 4), mar = c(0,0,0,0), oma = c(1.5,0,0,0))
 
-  data <- subset(oxy, Assessment_Unit == i)
-  profs <- subset(profiles, Assessment_Unit == i)
+  data <- subset(oxy, Basin == i)
+  profs <- subset(profiles, Basin == i)
 
   # plot params by assessment unit
   ylim <- c(max(data$Depth) + 10, -10)
   xlim <- range(-1, data$Oxygen_deficit+1, data$Salinity+1, na.rm = TRUE)
 
   count <- 0
-  for (j in unique(data$ID)) {
+  for (j in unique(profs$ID)) {
     wk <- subset(data, ID == j)
     fit <- subset(profs, ID == j)
     # plotting
@@ -131,62 +131,49 @@ for (i in sort(unique(oxy$Assessment_Unit))) {
 }
 dev.off()
 
-# reliable model plots -----------------------
 
-# select which data is reliable
-profiles <- profiles[!is.na(profiles$depth_change_point2.se),]
-# only use profiles that are based on an estimate of the lower halocline estimate with +- 20m accuracy
-profiles <- profiles[profiles$depth_change_point2.se < 10,]
-# only use profiles that are based on an estimate of the salinity difference estimate with +- 10 accuracy
-profiles <- profiles[profiles$sali_dif.se < 5,]
-
-pdf(paste("figures/reliable_model_plots.pdf"), onefile = TRUE, paper = "a4")
-
-oxy <- oxy[oxy$ID %in% profiles$ID,]
-for (i in sort(unique(oxy$Assessment_Unit))) {
-  par(mfrow = c(5, 4), mar = c(0,0,0,0), oma = c(1.5,0,0,0))
-
-  data <- subset(oxy, Assessment_Unit == i)
-  profs <- subset(profiles, Assessment_Unit == i)
-
-  # plot params by assessment unit
-  ylim <- c(max(data$Depth) + 10, -10)
-  xlim <- range(-1, data$Oxygen_deficit+1, data$Salinity+1, na.rm = TRUE)
-
-  count <- 0
-  for (j in unique(data$ID)) {
-    wk <- subset(data, ID == j)
-    fit <- subset(profs, ID == j)
-    # plotting
-    plot_model(wk, fit, xlim, ylim)
-    # titles
-    count <- count+1
-    if ((count %% prod(par("mfrow"))) == 1) {
-      mtext(i, side = 1, outer = TRUE, line = 0.5)
-    }
-  }
-}
-dev.off()
-
-# reload oxy and profiles
-oxy <- read.csv("model/input.csv")
-profiles <- read.csv("output/profiles.csv")
 
 
 # spatial model plots ------------------------------------------
 
-cols <- gplots::rich.colors(255)
-rast_fnames <- dir("output", pattern = ".tif")
+# load gam predictions ('pars')
+check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
+if (check != "pars") {
+  stop("Error loading gam predictions!\n\tTry rerunning model_3_spatial_predictions.R")
+}
+rm(check)
 
-pdf(paste("figures/spatial_model_plots.pdf"), onefile = FALSE, paper = "a4")
-  for (i in rast_fnames) {
-    x <- raster(paste0("output/", i))
-    plot(x, col = cols, main = i)
-    plot(assessmentArea, add = TRUE)
+cols <- rev(viridis::magma(50))
+tmp <- makeSpatial(pars[["2010"]])
+what <- c("halocline",
+          "depth_change_point1", "depth_change_point2",
+          "O2def_below_halocline", "O2def_slope_below_halocline",
+          "oxygendebt")
+
+key <- function(vals) {
+  xy <- c(49527.26, 6252697)
+  xy_width <- c(3, 1)*1.5e4
+  x <- sp::GridTopology(xy, xy_width, c(1,50))
+  x <- sp::as.SpatialPolygons.GridTopology(x, proj4string = sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+  plot(x, add = TRUE, border = NA, col = cols)
+  text((coordinates(x) + rep(c(xy_width[1]*2, 0), each = 50))[seq(1, 50, length = 8),],
+       label = round(seq(min(vals), max(vals), length = 8), 2),
+       cex = 0.5)
+}
+
+pdf(paste("analysis/output/OxygenDebt/spatial_model_plots.pdf"), onefile = TRUE, paper = "a4")
+  for (i in what) {
+    sp::plot(tmp, col = cols[cut(tmp[[i]], 50)], pch = ".", main = i)
+    sp::plot(helcom, add = TRUE, border = "red")
+    key(tmp[[i]])
   }
 dev.off()
-rm(x)
 
+
+
+
+if (FALSE) {
+## DON'T RUN
 
 # indicator plots ------------------------------------------
 
@@ -208,6 +195,7 @@ plot_indicator <- function(wk, xlim, ylim, main) {
   axis(2, las = 2, col = grey(0.7))
   abline(h = wk$ET[1], col = "red")
 }
+
 
 # data plots -----------------------
 
