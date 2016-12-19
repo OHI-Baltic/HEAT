@@ -1,11 +1,7 @@
 Makefile
-figures/*
-output/*
-write_up/*
-refs/*
-input/*
-refs/*
-model/*
+documentation/*
+analysis/*
+data/*
 
 scripts/working.R
 scripts/*_convert_plots_to_png.R

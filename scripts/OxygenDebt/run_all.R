@@ -1,19 +1,12 @@
 
+# load header function into top of search list
+while("oxydebt_funs" %in% search()) detach("oxydebt_funs")
+sys.source("scripts/OxygenDebt/zz_header.R", envir = attach(NULL, name = "oxydebt_funs"))
 
+# get scripts to run
+files <- dir("scripts/OxygenDebt/", pattern = "^(data|input|model|output)_.*[.]R$")
 
-#source("scripts/00_install_dependencies.R")
-
-source("scripts/01_input.R")
-
-source("scripts/02_model_profiles.R")
-
-source("scripts/03_model_spatial_profiles.R")
-
-source("scripts/04_model_indicators.R")
-
-source("scripts/05_plots.R")
-
-# done! --------------------------------------
-
-# if you want data and model fit plots
-source("scripts/06_plots.R")
+# run scripts in correct order
+for (file in sort(files)) {
+  source(file, echo = TRUE, keep.source = TRUE)
+}
