@@ -11,7 +11,7 @@
 # define salinity profile
 sali_profile <- function(depth, pars) {
   # requires a vector 'pars' with names: sali_surf, sali_dif, halocline, depth_gradient
-  with(pars, sali_surf + sali_dif * pnorm( (depth-halocline)/depth_gradient ))
+  with(pars, sali_surf + sali_dif * pnorm(depth, halocline, depth_gradient))
 }
 
 

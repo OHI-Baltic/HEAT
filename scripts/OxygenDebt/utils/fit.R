@@ -66,7 +66,7 @@ doonefit_full <- function(data, debug = FALSE, ID) {
 
   # fit salinity profile
   model <- try(
-    nls(Salinity ~ sali_surf + sali_dif * pnorm( (Depth-halocline)/depth_gradient ),
+    nls(Salinity ~ sali_surf + sali_dif * pnorm(Depth, halocline, depth_gradient),
         data = sal,
         lower = list(sali_dif = -0.5, halocline =  hlower, depth_gradient =   1),
         start = list(sali_dif =  4  , halocline =      50, depth_gradient =  10),
