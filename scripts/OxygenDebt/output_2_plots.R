@@ -155,8 +155,8 @@ key <- function(vals) {
   xy_width <- c(3, 1)*1.5e4
   x <- sp::GridTopology(xy, xy_width, c(1,50))
   x <- sp::as.SpatialPolygons.GridTopology(x, proj4string = sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-  plot(x, add = TRUE, border = NA, col = cols)
-  text((coordinates(x) + rep(c(xy_width[1]*2, 0), each = 50))[seq(1, 50, length = 8),],
+  sp::plot(x, add = TRUE, border = NA, col = cols)
+  text((sp::coordinates(x) + rep(c(xy_width[1]*2, 0), each = 50))[seq(1, 50, length = 8),],
        label = round(seq(min(vals), max(vals), length = 8), 2),
        cex = 0.5)
 }
