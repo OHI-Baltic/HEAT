@@ -96,7 +96,9 @@ if (FALSE) {
 surfaces$oxygendebt <-
   sapply(1:nrow(surfaces),
     function(i) {
+      # dont predict if halocline is below max depth
       if (surfaces$halocline[i] >= surfaces$depth[i]) return (NA_real_)
+      # predict oxygen debt at 1m intervals and take the average
       depths <- seq(surfaces$halocline[i], surfaces$depth[i], by = 1)
       mean(oxy_profile(depths, surfaces[i,])) # sum(o2) / volume
     })
