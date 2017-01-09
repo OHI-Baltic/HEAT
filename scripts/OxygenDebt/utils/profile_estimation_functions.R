@@ -40,8 +40,10 @@ oxy_profile <- function(depth, pars) {
     }
   }
 
-  ifelse(depth < pars$depth_change_point1, mod1(depth),
-         ifelse(depth < pars$depth_change_point2, mod2(depth),
+  ifelse(depth < pars$depth_change_point1,
+           mod1(depth),
+    ifelse(depth < pars$depth_change_point2,
+             mod2(depth),
                 mod3(depth)))
 }
 
