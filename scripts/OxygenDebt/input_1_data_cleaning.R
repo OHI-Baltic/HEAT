@@ -41,11 +41,29 @@ oxy$Oxygen <- oxy$Oxygen_ml * 1.428 # or / 0.700
 oxy$Oxygen_deficit <- O2satFun(oxy$Temperature) - oxy$Oxygen
 
 # checks
+if (FALSE) {
+  plot(oxy$Oxygen, oxy$Hydrogen_Sulphide)
+  plot(oxy$Oxygen_deficit, oxy$Hydrogen_Sulphide)
+}
+
 # supersaturation not realistic below 30 m - error
 oxy$Oxygen_deficit[which(oxy$Oxygen_deficit < 0 & oxy$Depth>30)] <- NA
 
 # drop missing observations ? - I think so - why keep double NA rows ?
 oxy <- subset(oxy, !is.na(Salinity) | !is.na(Oxygen_deficit))
+
+# set up censoring rules for oxygen deficit slope below halocline:
+#     1. do not use CTD data close to zero as they go constant
+#     2. censoring and no measurement of H2S ? - not implemented
+#O2_slope$censor <- (O2_slope$Type == "BOT" & O2_slope$Oxygen < 1) |
+#                   (O2_slope$Type == "WQ"  & O2_slope$Oxygen == 0)
+oxy$censor <- 0
+oxy$censor[oxy$Type == 'CTD' & oxy$Oxygen < 1] <- 1 # do not use CTD data close to zero as they go constant;
+#oxy$censor[which(oxy$Type == 'BOT' & oxy$Oxygen == 0)] <- 1 # censoring and no measurement of H2S;
+oxy$censor[is.na(oxy$Hydrogen_Sulphide) & oxy$Oxygen == 0] <- 1 # censoring and no measurement og H2S;
+
+# oxygen deficit should not be negative ?
+oxy$Oxygen_deficit[oxy$Oxygen_deficit < 0] <- 0
 
 
 if (FALSE) {
@@ -61,6 +79,8 @@ if (FALSE) {
 oxy$date <- lubridate::ymd(with(oxy, paste(Year, Month, Day, sep = "-")))
 oxy$yday <- lubridate::yday(oxy$date)
 oxy$Basin <- factor(oxy$Basin)
+
+# select data
 
 # write data --------------------
 
