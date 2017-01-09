@@ -44,6 +44,9 @@ oxy$Salinity <- keep_x(oxy$Salinity.ctd, oxy$Salinity.bot)
 oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
 rm(keep_x)
 
+# keep only data between 2011 and 2015
+oxy <- oxy[oxy$Year >= 2011 & oxy$Year <= 2015,]
+
 # create profile ID
 oxy$ID <- as.integer(factor(apply(oxy[c("Year", "Month", "Day", "Hour", "Minute",
                                         "Latitude", "Longitude",
