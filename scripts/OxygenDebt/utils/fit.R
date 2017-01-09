@@ -16,10 +16,12 @@
 #' @importFrom survival Surv
 #' @importFrom survival survreg.control
 
+if (FALSE) {
+  id <- 6679
+  data <- subset(oxy, ID == id)
+  ID <- id
+}
 
-# id <- 2
-# data <- subset(oxy, ID == id)
-# ID <- id
 
 
 doonefit_full <- function(data, debug = FALSE, ID) {
@@ -29,11 +31,13 @@ doonefit_full <- function(data, debug = FALSE, ID) {
 
   # output container
   fit <- data.frame(ID = ID,
-                    sali_surf = NA, sali_dif = NA, halocline = NA, depth_gradient = NA,
-                    sali_dif.se = NA,
+                    sali_surf = NA,
+                    sali_dif = NA, halocline = NA, depth_gradient = NA,
+                    sali_dif.se = NA, halocline.se = NA, depth_gradient.se = NA,
                     depth_change_point1 = NA,
                     depth_change_point2 = NA, depth_change_point2.se = NA,
                     O2def_below_halocline = NA, O2def_slope_below_halocline = NA,
+                    O2def_slope_below_halocline.se = NA,
                     notes = "")
 
   # only proceed if there are enough obs to estimate surface salinity
@@ -93,6 +97,8 @@ doonefit_full <- function(data, debug = FALSE, ID) {
   } else {
     fit$depth_change_point2.se <- sqrt(drop(X %*% vcov(model) %*% t(X)))
     fit$sali_dif.se <- sqrt(diag(vcov(model)))["sali_dif"]
+    fit$halocline.se <- sqrt(diag(vcov(model)))["halocline"]
+    fit$depth_gradient.se <- sqrt(diag(vcov(model)))["depth_gradient"]
   }
   # compute number of datapoints above halocline depth
 
@@ -127,16 +133,10 @@ doonefit_full <- function(data, debug = FALSE, ID) {
   O2_slope <- O2[O2$Depth > fit$depth_change_point2,]
 
   # if not enough data return
-  if (nrow(O2_slope) < 2) {
-    fit$notes <- "too few O2 observations below halocline"
+  if (nrow(O2_slope[O2_slope$censor == 0,]) < 2) {
+    fit$notes <- "too few uncensored O2 observations below halocline"
     return(fit)
   }
-
-  # set up censoring rules for oxygen deficit slope below halocline:
-  #     1. do not use CTD data close to zero as they go constant
-  #     2. censoring and no measurement of H2S ? - not implemented
-  O2_slope$censor <- (O2_slope$Type == "CTD" & O2_slope$Oxygen < 1) |
-                     (O2_slope$Type == "WQ"  & O2_slope$Oxygen == 0)
 
   # recenter data to easily estimate the slope
   O2_slope$Oxygen_deficit <- O2_slope$Oxygen_deficit - fit$O2def_below_halocline
@@ -156,14 +156,15 @@ doonefit_full <- function(data, debug = FALSE, ID) {
       )
     # TODO add in convergence warning if given
     # fit$notes <- ...
+    fit$O2def_slope_below_halocline.se <- seg3_model$var["Depth",1]
   } else {
     # Fit the non censored version
     seg3_model <- lm(Oxygen_deficit ~ Depth - 1, data = O2_slope)
+    fit$O2def_slope_below_halocline.se <- summary(seg3_model)$coefficients["Depth", 2]
   }
 
   # save the estimate (slope must be positive)
   fit$O2def_slope_below_halocline <- pmax(0,coef(seg3_model))
-  #fit$O2def_slope_below_halocline <- coef(seg3_model)
 
   fit$notes <- "success"
 
