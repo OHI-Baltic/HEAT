@@ -1,4 +1,3 @@
-
 # ----------------------------
 #
 #   Table indicators
@@ -21,32 +20,73 @@ if (check != "surfaces") {
 rm(check)
 
 
-# create table of indicators by year and basin
+# create table of indicators by year and by year and basin
 ES_y <- with(surfaces, tapply(oxygendebt, list(Basin, Year), mean, na.rm = TRUE))
 names(dimnames(ES_y)) <- c("Basin", "Year")
-out_y <- do.call(expand.grid, c(dimnames(ES_y), KEEP.OUT.ATTRS = FALSE))
-out_y$ES <- c(ES_y)
+out_y <- do.call(expand.grid, c(dimnames(ES_y), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
 
-
-# create table of indicators by basin
 ES <- with(surfaces, tapply(oxygendebt, list(Basin), mean, na.rm = TRUE))
 names(dimnames(ES)) <- "Basin"
-out <- do.call(expand.grid, c(dimnames(ES), KEEP.OUT.ATTRS = FALSE))
+out <- do.call(expand.grid, c(dimnames(ES), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+
+# add indicator estimate
+out_y$ES <- c(ES_y)
 out$ES <- c(ES)
 
-ES_SD <- with(surfaces, tapply(oxygendebt, list(Basin, Year), mean, na.rm = TRUE))
-ES_SD <- apply(ES_SD, 1, sd)
-out$ES_SD <- c(ES)
+# add indicator SD
+ES_SD_y <- with(surfaces, tapply(oxygendebt, list(Basin, Year), sd, na.rm = TRUE))
+out_y$ES_SD <- c(ES_SD_y)
 
+ES_SD <- with(surfaces, tapply(oxygendebt, list(Basin), sd, na.rm = TRUE))
+out$ES_SD <- c(ES_SD)
 
-# add in auxilliary information
 # read profile fits
 profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
-N_y <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin, Year), function(x) sum(!is.na(x))))
-out_y$N <- c(N_y)
 
-N <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin), function(x) sum(!is.na(x))))
-out$N <- c(N)
+# add in auxilliary information
+ES_N_y <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin, Year), function(x) sum(!is.na(x))))
+out_y$ES_N <- c(ES_N_y)
+
+ES_N <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin), function(x) sum(!is.na(x))))
+out$ES_N <- c(ES_N)
+
+# now expand to AssessmentUnitID
+library(sp)
+helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
+helcom <- helcom[helcom$Basin %in% out$Basin,]
+SEA <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+SEA <- SEA[grep("SEA", SEA$Code),]
+SEA <- spTransform(SEA, CRS(proj4string(helcom)))
+
+if (FALSE) {
+  plot(helcom, col = gplots::rich.colors(nrow(helcom), alpha = 0.5), border = NA)
+  plot(SEA, border = "red", lwd = 2, add = TRUE)
+  text(coordinates(SEA), labels = SEA$Code, cex = 0.6, col = "red")
+  text(coordinates(helcom), labels = helcom$Basin, cex = 0.6)
+}
+
+lookup <- as.data.frame(SEA)
+names(lookup) <- c("AssessmentUnitID", "AssessmentUnitName")
+lookup$Basin <- c(NA_character_,     # 001,
+                  NA_character_,     # 002,
+                  NA_character_,     # 003,
+                  NA_character_,     # 004,
+                  NA_character_,     # 005,
+                  "Arkona Basin",    # 006
+                  "Bornholm Basin",  # 007
+                  "Baltic Proper",   # 008
+                  "Baltic Proper",   # 009
+                  "Baltic Proper",   # 010
+                  "Gulf of Riga",    # 011
+                  "Baltic Proper",   # 012
+                  "Gulf of Finland", # 013
+                  NA_character_,     # 014
+                  "Bothnian Sea",    # 015
+                  NA_character_,     # 016
+                  "Bothnian Bay")    # 017
+
+out <- dplyr::right_join(lookup, out, by = "Basin")
+out_y <- dplyr::right_join(lookup, out_y, by = "Basin")
 
 # inspect
 if (FALSE) {
@@ -54,7 +94,7 @@ if (FALSE) {
   out_y
 
   # check
-  cbind(with(out_y, tapply(N, Basin, sum)), out$N)
+  cbind(with(out_y, tapply(ES_N, Basin, sum)), out$ES_N)
 }
 
 
