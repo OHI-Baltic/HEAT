@@ -22,9 +22,16 @@ rm(check)
 
 # create table of indicators by year
 #ES <- with(surfaces, tapply(oxygendebt, list(Basin, Year), mean, na.rm = TRUE))
+#names(dimnames(ES)) <- c("Basin", "Year")
 ES <- with(surfaces, tapply(oxygendebt, list(Basin), mean, na.rm = TRUE))
+names(dimnames(ES)) <- "Basin"
 out <- do.call(expand.grid, c(dimnames(ES), KEEP.OUT.ATTRS = FALSE))
 out$ES <- c(ES)
+
+ES_SD <- with(surfaces, tapply(oxygendebt, list(Basin, Year), mean, na.rm = TRUE))
+ES_SD <- apply(ES_SD, 1, sd)
+out$ES_SD <- c(ES)
+
 
 # add in auxilliary information
 # read profile fits
