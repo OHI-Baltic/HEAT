@@ -67,12 +67,13 @@ if (FALSE) {
 
 lookup <- as.data.frame(SEA)
 names(lookup) <- c("AssessmentUnitID", "AssessmentUnitName")
+lookup$AssessmentUnitID <- as.integer(gsub("SEA-", "", lookup$AssessmentUnitID))
 lookup$Basin <- c(NA_character_,     # 001,
                   NA_character_,     # 002,
                   NA_character_,     # 003,
                   NA_character_,     # 004,
                   NA_character_,     # 005,
-                  NA_character_,     # 006
+                  "Arkona Basin",     # 006
                   "Bornholm Basin",  # 007
                   "Baltic Proper",   # 008
                   "Baltic Proper",   # 009
@@ -89,6 +90,9 @@ lookup$Basin <- c(NA_character_,     # 001,
 
 out <- dplyr::right_join(lookup, out, by = "Basin")
 out_y <- dplyr::right_join(lookup, out_y, by = "Basin")
+
+out <- out[order(out$AssessmentUnitID),]
+out_y <- out_y[order(out_y$AssessmentUnitID, out_y$Year),]
 
 # inspect
 if (FALSE) {
