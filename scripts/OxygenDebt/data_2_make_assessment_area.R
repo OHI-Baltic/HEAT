@@ -43,6 +43,20 @@ helcom_balsem$Bo_Basin <- iconv(helcom_balsem$Bo_Basin, "UTF-8", "ASCII", sub = 
 helcom_balsem$Bo_Basin <- gsub("oeresund", "Oeresund", helcom_balsem$Bo_Basin)
 helcom_balsem$Basin <- helcom_balsem$Bo_Basin
 
+# keep only certain areas
+helcom_balsem <-
+  helcom_balsem[helcom_balsem$Basin %in% c("Arkona Basin",
+                                           "Baltic Proper",
+                                           "Bornholm Basin",
+                                           "Bothnian Bay",
+                                           "Bothnian Sea",
+                                           "Gulf of Finland"),]
+
+# merge Gulf of Finland with Baltic Proper
+tmp <- rgeos::gUnaryUnion(helcom_balsem[helcom_balsem$Basin %in% c("Baltic Proper", "Gulf of Finland"),])
+helcom_balsem@polygons[[which(helcom_balsem$Basin == "Baltic Proper")]] <- tmp@polygons[[1]]
+helcom_balsem <- helcom_balsem[helcom_balsem$Basin != "Gulf of Finland",]
+
 # check
 if (FALSE) {
   sp::plot(helcom_balsem, col = gplots::rich.colors(nrow(helcom_balsem), alpha=0.5))
