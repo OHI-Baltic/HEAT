@@ -44,8 +44,8 @@ oxy$Salinity <- keep_x(oxy$Salinity.ctd, oxy$Salinity.bot)
 oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
 rm(keep_x)
 
-# keep only data between 2011 and 2015
-oxy <- oxy[oxy$Year >= 2011 & oxy$Year <= 2015,]
+# keep only data between 2011 and 2016
+oxy <- oxy[oxy$Year >= 2011 & oxy$Year <= 2016,]
 
 # create profile ID
 oxy$ID <- as.integer(factor(apply(oxy[c("Year", "Month", "Day", "Hour", "Minute",
@@ -92,7 +92,7 @@ oxy <- sp::spTransform(oxy, sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +n
 #
 # ----------------------------
 
-# read helcom and drop non SEA areas
+# read helcom indicator modelling areas
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # join points with polygons
