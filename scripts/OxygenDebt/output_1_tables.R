@@ -72,18 +72,20 @@ lookup$Basin <- c(NA_character_,     # 001,
                   NA_character_,     # 003,
                   NA_character_,     # 004,
                   NA_character_,     # 005,
-                  "Arkona Basin",    # 006
+                  NA_character_,     # 006
                   "Bornholm Basin",  # 007
                   "Baltic Proper",   # 008
                   "Baltic Proper",   # 009
                   "Baltic Proper",   # 010
-                  "Gulf of Riga",    # 011
+                  NA_character_,     # 011
                   "Baltic Proper",   # 012
-                  "Gulf of Finland", # 013
-                  NA_character_,     # 014
+                  "Baltic Proper",   # 013
+                  "Bothnian Sea",    # 014
                   "Bothnian Sea",    # 015
                   NA_character_,     # 016
                   "Bothnian Bay")    # 017
+
+# convert SEA=001 to 1
 
 out <- dplyr::right_join(lookup, out, by = "Basin")
 out_y <- dplyr::right_join(lookup, out_y, by = "Basin")
