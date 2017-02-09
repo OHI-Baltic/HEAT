@@ -139,37 +139,37 @@ dev.off()
 # load gam predictions ('pars')
 check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
 if (check != "pars") {
-  stop("Error loading gam predictions!\n\tTry rerunning model_3_spatial_predictions.R")
-}
-rm(check)
+  warning("Error loading gam predictions!\n\tSkipping spatial plots for now.")
+} else {
+  rm(check)
 
-cols <- rev(viridis::magma(50))
-tmp <- makeSpatial(pars[["2010"]])
-what <- c("halocline",
-          "depth_change_point1", "depth_change_point2",
-          "O2def_below_halocline", "O2def_slope_below_halocline",
-          "oxygendebt")
+  cols <- rev(viridis::magma(50))
+  tmp <- makeSpatial(pars[["2010"]])
+  what <- c("halocline",
+            "depth_change_point1", "depth_change_point2",
+            "O2def_below_halocline", "O2def_slope_below_halocline",
+            "oxygendebt")
 
-key <- function(vals) {
-  xy <- c(49527.26, 6252697)
-  xy_width <- c(3, 1)*1.5e4
-  x <- sp::GridTopology(xy, xy_width, c(1,50))
-  x <- sp::as.SpatialPolygons.GridTopology(x, proj4string = sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-  sp::plot(x, add = TRUE, border = NA, col = cols)
-  text((sp::coordinates(x) + rep(c(xy_width[1]*2, 0), each = 50))[seq(1, 50, length = 8),],
-       label = round(seq(min(vals), max(vals), length = 8), 2),
-       cex = 0.5)
-}
+  key <- function(vals) {
+    xy <- c(49527.26, 6252697)
+    xy_width <- c(3, 1)*1.5e4
+    x <- sp::GridTopology(xy, xy_width, c(1,50))
+    x <- sp::as.SpatialPolygons.GridTopology(x, proj4string = sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+    sp::plot(x, add = TRUE, border = NA, col = cols)
+    text((sp::coordinates(x) + rep(c(xy_width[1]*2, 0), each = 50))[seq(1, 50, length = 8),],
+         label = round(seq(min(vals), max(vals), length = 8), 2),
+         cex = 0.5)
+  }
 
-pdf(paste("analysis/output/OxygenDebt/spatial_model_plots.pdf"), onefile = TRUE, paper = "a4")
+  pdf(paste("analysis/output/OxygenDebt/spatial_model_plots.pdf"), onefile = TRUE, paper = "a4")
   for (i in what) {
     sp::plot(tmp, col = cols[cut(tmp[[i]], 50)], pch = ".", main = i)
     sp::plot(helcom, add = TRUE, border = "red")
     key(tmp[[i]])
   }
-dev.off()
+  dev.off()
 
-
+}
 
 
 if (FALSE) {
