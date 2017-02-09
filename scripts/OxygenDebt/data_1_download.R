@@ -23,18 +23,17 @@ if (!dir.exists("data/OxygenDebt/shapefiles")) dir.create("data/OxygenDebt/shape
 # the location of the input data
 ftp <- "ftp://ftp.ices.dk/dist/heat/"
 
-
 # quick function to download input data and save
-get_input <- function(from, force = TRUE, zipped = FALSE) {
+get_input <- function(from, force = FALSE, zipped = FALSE) {
   to <- from
   if (zipped) {
     to <- gsub("data/OxygenDebt/", "data/OxygenDebt/zips/", to)
   }
   if (!file.exists(to) || force) {
     download.file(paste0(ftp, from), destfile = to, quiet = TRUE)
-    if (zipped) {
-      unzip(to, exdir = "data/OxygenDebt")
-    }
+  }
+  if (zipped) {
+    unzip(to, exdir = "data/OxygenDebt")
   }
 }
 
