@@ -56,7 +56,7 @@ if (FALSE) {
 # create prediction data for each year
 surfaces <-
   do.call(rbind,
-    lapply(2011:2015, function(y) cbind(surfaces, Year = y))
+    lapply(2011:2016, function(y) cbind(surfaces, Year = y))
   )
 
 # do predictions
