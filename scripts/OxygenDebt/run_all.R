@@ -5,6 +5,7 @@ sys.source("scripts/OxygenDebt/zz_header.R", envir = attach(NULL, name = "tools:
 
 # get scripts to run
 files <- paste0("scripts/OxygenDebt/", dir("scripts/OxygenDebt/", pattern = "^(data|input|model|output)_.*[.]R$"))
+files <- files[-1]
 
 # run scripts in correct order
 for (file in sort(files)) {

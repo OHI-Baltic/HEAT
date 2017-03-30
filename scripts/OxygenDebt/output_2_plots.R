@@ -14,14 +14,14 @@ oxy <- read.csv("analysis/input/OxygenDebt/oxy_clean.csv")
 profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
 
 # read assessment unit shape file
-helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas")
+helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # make a spatial data.frame from oxy and profiles
 spoxy <- makeSpatial(oxy)
 spprofiles <- makeSpatial(profiles)
 
 # read depth profile
-bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry")
+bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
 
 
 
@@ -138,13 +138,13 @@ dev.off()
 
 # load gam predictions ('pars')
 check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
-if (check != "pars") {
+if (check != "surfaces") {
   warning("Error loading gam predictions!\n\tSkipping spatial plots for now.")
 } else {
   rm(check)
 
   cols <- rev(viridis::magma(50))
-  tmp <- makeSpatial(pars[["2010"]])
+  tmp <- makeSpatial(surfaces[surfaces$Year == 2015,])
   what <- c("halocline",
             "depth_change_point1", "depth_change_point2",
             "O2def_below_halocline", "O2def_slope_below_halocline",
