@@ -75,33 +75,6 @@ surfaces <-
       )
   )
 
-# calculate derived quantities
-surfaces$depth_change_point1 <- surfaces$halocline - 1.0 * surfaces$depth_gradient
-surfaces$depth_change_point2 <- surfaces$halocline + 1.0 * surfaces$depth_gradient
-
-# brunt vaisala approx
-surfaces$Nbv <- sqrt( 9.8 / (1 + 0.0008 * (surfaces$sali_surf + surfaces$sali_dif/2)) *
-                      0.68 * 0.0008 * surfaces$sali_dif / (2*surfaces$depth_gradient))
-
-# Bottom volume
-surfaces$Vbottom <- surfaces$depth - surfaces$halocline
-surfaces$Vbottom[surfaces$Vbottom < 0] <- NA_real_
-
-# Bottom salinity
-surfaces$Sbottom <-
-  sapply(1:nrow(surfaces),
-    function(i) {
-      # dont calculate if halocline is below max depth
-      if (surfaces$halocline[i] >= surfaces$depth[i]) return (NA_real_)
-      # predict salinity at 1m intervals and take the average
-      depths <- seq(surfaces$halocline[i], surfaces$depth[i], by = 1)
-      mean(sali_profile(depths, surfaces[i,])) # sum(sali) / volume
-    })
-
-# check
-if (FALSE) {
-  summary(surfaces)
-}
 
 # From these surfaces, compute volume specific oxygen deficit.
 # *    CHECK WITH SAS CODE:  numerically integrate over depth, using bathymetry.
@@ -110,18 +83,136 @@ if (FALSE) {
 # *         finally compute total O2 deficit / total volume
 # *         this results in a surface of volume specific oxygen debt.
 
-# * Other useful quantities are - oxygen deficit at maximum depth.
 
+# create depth vectors
+depths <-
+  lapply(1:nrow(surfaces),
+         function(i) {
+           seq(0.5, surfaces$depth[i], by = 1)
+         })
+
+# add volumes
+surfaces$surface <-
+  sapply(1:nrow(surfaces), function(i) {
+    sum(depths[[i]] <= surfaces$halocline[i] - surfaces$depth_gradient[i])
+})
+
+surfaces$uhalo <-
+  sapply(1:nrow(surfaces), function(i) {
+    sum(depths[[i]] > surfaces$halocline[i] - surfaces$depth_gradient[i] &
+        depths[[i]] <= surfaces$halocline[i])
+})
+
+surfaces$lhalo <-
+  sapply(1:nrow(surfaces), function(i) {
+    sum(depths[[i]] > surfaces$halocline[i] &
+        depths[[i]] <= surfaces$halocline[i] + surfaces$depth_gradient[i])
+})
+
+surfaces$bottom <-
+  sapply(1:nrow(surfaces), function(i) {
+    sum(depths[[i]] > surfaces$halocline[i] + surfaces$depth_gradient[i])
+})
+
+
+# create salinity vector predictions
+salinities <-
+  lapply(1:nrow(surfaces),
+         function(i) {
+           surfaces$sali_surf[i] + surfaces$sali_dif[i] * pnorm(depths[[i]], surfaces$halocline[i], surfaces$depth_gradient[i])
+         })
+
+# add salinities
+surfaces$surface_salinity <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] <= surfaces$halocline[i] - surfaces$depth_gradient[i]
+    sum(salinities[[i]][filt])
+})
+
+surfaces$uhalo_salinity <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] > surfaces$halocline[i] - surfaces$depth_gradient[i] &
+            depths[[i]] <= surfaces$halocline[i]
+    sum(salinities[[i]][filt])
+})
+
+surfaces$lhalo_salinity <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] > surfaces$halocline[i] &
+            depths[[i]] <= surfaces$halocline[i] + surfaces$depth_gradient[i]
+    sum(salinities[[i]][filt])
+})
+
+surfaces$bottom_salinity <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] > surfaces$halocline[i] + surfaces$depth_gradient[i]
+    sum(salinities[[i]][filt])
+})
+
+
+# add oxygen debt
+surfaces$surface_O2debt <- 0 # by definition
+
+surfaces$uhalo_O2debt <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] > surfaces$halocline[i] - surfaces$depth_gradient[i] &
+            depths[[i]] <= surfaces$halocline[i]
+    if (sum(filt) == 0) return(0)
+    O2debt <- (depths[[i]][filt] - (surfaces$halocline[i] - surfaces$depth_gradient[i])) *
+               surfaces$O2def_below_halocline[i] / (2 * surfaces$depth_gradient[i])
+    sum(O2debt)
+})
+
+surfaces$lhalo_O2debt <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] > surfaces$halocline[i] &
+            depths[[i]] <= surfaces$halocline[i] + surfaces$depth_gradient[i]
+    if (sum(filt) == 0) return(0)
+    O2debt <- (depths[[i]][filt] - (surfaces$halocline[i] - surfaces$depth_gradient[i])) *
+               surfaces$O2def_below_halocline[i] / (2 * surfaces$depth_gradient[i])
+    sum(O2debt)
+})
+
+surfaces$bottom_O2debt <-
+  sapply(1:nrow(surfaces), function(i) {
+    filt <- depths[[i]] > surfaces$halocline[i] + surfaces$depth_gradient[i]
+    if (sum(filt) == 0) return(0)
+    O2debt <- (depths[[i]][filt] - (surfaces$halocline[i] + surfaces$depth_gradient[i])) *
+               surfaces$O2def_slope_below_halocline[i] + surfaces$O2def_below_halocline[i]
+    sum(O2debt)
+})
+
+
+# remaining interesting quantities are:
+#    Lhalo_area = NA,
+#    uhalo_area = NA,
+#    bottom_area = NA,
+#    surface_area = NA,
+#    O2debt = NA,
+#    hypoxic_volume = NA,
+#    cod_rep_volume = NA,
+#    hypoxic_area = NA
+
+# check
+if (FALSE) {
+  summary(surfaces)
+}
+
+
+if (FALSE) {
+# a previous incorrect implementation
+surfaces$depth_change_point1 <- surfaces$halocline - surfaces$sali_dif
+surfaces$depth_change_point2 <- surfaces$halocline + surfaces$sali_dif
 surfaces$oxygendebt <-
   sapply(1:nrow(surfaces),
     function(i) {
-      # dont predict if halocline is below max depth
-      if (surfaces$halocline[i] >= surfaces$depth[i]) return (NA_real_)
-      # predict oxygen debt at 1m intervals and take the average
-      depths <- seq(surfaces$halocline[i], surfaces$depth[i], by = 1)
-      mean(oxy_profile(depths, surfaces[i,])) # sum(o2) / volume
-    })
-
+    # dont predict if halocline is below max depth
+    if (surfaces$halocline[i] >= surfaces$depth[i]) return (NA_real_)
+    # predict oxygen debt at 1m intervals and take the average
+    depths <- seq(surfaces$halocline[i], surfaces$depth[i], by = 1)
+    mean(oxy_profile(depths, surfaces[i,])) # sum(o2) / volume
+  })
+}
 
 # checks
 if (FALSE) {
