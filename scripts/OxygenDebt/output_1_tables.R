@@ -154,7 +154,6 @@ ES_y <-
          function(Basin) {
            newdata <- make_datnew(Basin)
            aux <- get_aux(Basin)
-
            newdata$O2debt_volsp
          })
 ES_y <- t(ES_y)
