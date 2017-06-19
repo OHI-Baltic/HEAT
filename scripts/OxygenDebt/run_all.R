@@ -1,11 +1,12 @@
 
 # load header function into top of search list
-while("tools:oxydebt_funs" %in% search()) detach("tools:oxydebt_funs")
-sys.source("scripts/OxygenDebt/00_header.R", envir = attach(NULL, name = "tools:oxydebt_funs"))
+source("scripts/OxygenDebt/00_initialise.R")
 
 # get scripts to run
 files <- paste0("scripts/OxygenDebt/", dir("scripts/OxygenDebt/", pattern = "^(data|input|model|output)_.*[.]R$"))
-files <- files[-1]
+
+# don't run dowload script if you already have the data
+#files <- files[-1]
 
 # run scripts in correct order
 for (file in sort(files)) {
