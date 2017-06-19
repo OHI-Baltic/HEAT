@@ -1,6 +1,6 @@
 # ----------------------------
 #
-#   Table indicators
+#   Correct oxygen debt for
 #
 #     * load indicator surfaces
 #
@@ -19,25 +19,161 @@ if (check != "surfaces") {
 }
 rm(check)
 
+# read in regression parameters
+aux_info <- read.csv("data/OxygenDebt/auxilliary.csv")
+
+# load baltic inflow data
+mbi <- read.csv("data/OxygenDebt/MajorBalticInflows.csv")
+mbi_years <- min(mbi$year_end, na.rm = TRUE):max(mbi$year_end, na.rm = TRUE)
+mbi <- mbi[mbi$year_end %in% mbi_years,]
+mbi <- tapply(mbi$intensity, factor(mbi$year_end, levels = mbi_years), sum)
+mbi[is.na(mbi)] <- 0
+
+
+make_datnew <- function(Basin) {
+
+  # aggregate spatial estimates to basin level:
+  summarise <- function(x, func = mean, Basin = "Baltic Proper") {
+    filt <- surfaces$Basin == Basin
+    bylist <- surfaces$Year[filt]
+    c(tapply(x[filt], bylist, func, na.rm = TRUE))
+  }
+
+  datnew <-
+    data.frame(
+      year = unique(surfaces$Year),
+      O2rate_below = summarise(surfaces$O2def_slope_below_halocline, Basin = Basin),
+      O2_lower = NA,
+      O2def_lower = summarise(surfaces$O2def_below_halocline, Basin = Basin),
+      sali_dif = summarise(surfaces$sali_dif, Basin = Basin),
+      bot_temp = NA,
+      sali_surf = summarise(surfaces$sali_surf, Basin = Basin),
+      depth_gradient = summarise(surfaces$depth_gradient, Basin = Basin),
+      halocline = summarise(surfaces$halocline, Basin = Basin),
+      Lhalo_volume = summarise(surfaces$lhalo, sum, Basin = Basin)/1000,
+      uhalo_volume = summarise(surfaces$uhalo, sum, Basin = Basin)/1000,
+      bottom_volume = summarise(surfaces$bottom, sum, Basin = Basin)/1000,
+      surface_volume = summarise(surfaces$surface, sum, Basin = Basin)/1000,
+      Lhalo_salinity = summarise(surfaces$lhalo_salinity, sum, Basin = Basin)/1000000,
+      uhalo_salinity = summarise(surfaces$uhalo_salinity, sum, Basin = Basin)/1000000,
+      bottom_salinity = summarise(surfaces$bottom_salinity, sum, Basin = Basin)/1000000,
+      surface_salinity = summarise(surfaces$surface_salinity, sum, Basin = Basin)/1000000,
+      Lhalo_O2debt = summarise(surfaces$lhalo_O2debt, sum, Basin = Basin)/1000000,
+      uhalo_O2debt = summarise(surfaces$uhalo_O2debt, sum, Basin = Basin)/1000000,
+      bottom_O2debt = summarise(surfaces$bottom_O2debt, sum, Basin = Basin)/1000000,
+      surface_O2debt = summarise(surfaces$surface_O2debt, sum, Basin = Basin)/1000000,
+      Lhalo_area = NA,
+      uhalo_area = NA,
+      bottom_area = NA,
+      surface_area = NA,
+      O2debt = NA,
+      hypoxic_volume = NA,
+      cod_rep_volume = NA,
+      hypoxic_area = NA,
+      mbi = 0,
+      Ninput = NA
+    )
+
+  # brunt vaisala approx
+  # this is the one used in PNAS 2014 paper:
+  #surfaces$Nbv <- sqrt( 9.8 / (1 + 0.0008 * (surfaces$sali_surf + surfaces$sali_dif/2)) *
+  #                      0.68 * 0.0008 * surfaces$sali_dif / (2*surfaces$depth_gradient))
+  # this is the one used in TARGREV:
+  datnew$Nbv <- sqrt( 9.8 / (1 + 0.001 * (datnew$sali_surf + datnew$sali_dif/2)) *
+                      0.001 * datnew$sali_dif / (2*datnew$depth_gradient))
+
+  # calculate O2debt
+  datnew$O2debt <- (datnew$Lhalo_O2debt + datnew$bottom_O2debt)
+
+  # volume specific O2 debt * 1000 t get in mg pr litre
+  datnew$O2debt_volsp <- datnew$O2debt / (datnew$Lhalo_volume + datnew$bottom_volume) * 1000
+
+  # major baltic inflows
+  datnew$mbi[datnew$year %in% as.numeric(names(mbi))] <- mbi[as.numeric(names(mbi)) %in% datnew$year]
+
+  # subset to assessment period
+  datnew <- datnew[datnew$year %in% 2011:2015,]
+
+  # return
+  datnew
+}
+
+
+get_aux <- function(Basin) {
+  aux_info[aux_info$Basin == Basin,]
+}
+
+
+
+if (FALSE) {
+  newdata <- make_datnew("Baltic Proper")
+
+  # uncorrected oxygen debt
+  x <- datnew$year
+  y <- datnew$O2debt_volsp
+  smoothy <-
+    sapply(seq_along(y),
+           function(i) {
+             if (is.na(y[i])) return(NA)
+             id <- -2:2 + i;
+             id <- id[id > 0];
+             mean(y[id], na.rm = TRUE)
+           })
+  plot(x, y,
+       main = "Uncorrected",
+       pch = 16, col = "darkblue", cex = 1.2,
+       ylab = "", las = 1)
+  lines(x, smoothy, lwd = 3)
+}
+
+if (FALSE) {
+  newdata <- make_datnew("Baltic Proper")
+  aux <- get_aux("Baltic Proper")
+
+  # corrected oxygen debt - what I think it should be
+  x <- datnew$year
+  y <- datnew$O2debt_volsp -
+         aux$a_MBI * datnew$mbi * datnew$Nbv -
+         aux$a_salinity * (datnew$bottom_salinity + datnew$Lhalo_salinity)/10 * datnew$Nbv
+
+  plot(x, y,
+       main = "Corrected",
+       pch = 16, col = "darkblue", cex = 1.2,
+       ylab = "Volume specific O2 debt", las = 1)
+
+  mean(y)
+}
 
 # create table of indicators by year and by year and basin
-ES_y <- with(surfaces, tapply(oxygendebt, list(Basin, Year), mean, na.rm = TRUE))
+
+basins <- unique(surfaces$Basin)
+#basins <- c("Baltic Proper", "Bornholm Basin")
+
+ES_y <-
+  sapply(basins,
+         function(Basin) {
+           newdata <- make_datnew(Basin)
+           aux <- get_aux(Basin)
+
+           newdata$O2debt_volsp
+         })
+ES_y <- t(ES_y)
+colnames(ES_y) <- 2011:2015
 names(dimnames(ES_y)) <- c("Basin", "Year")
 out_y <- do.call(expand.grid, c(dimnames(ES_y), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
 
-ES <- with(surfaces, tapply(oxygendebt, list(Basin), mean, na.rm = TRUE))
-names(dimnames(ES)) <- "Basin"
-out <- do.call(expand.grid, c(dimnames(ES), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+ES <- rowMeans(ES_y)
+out <- do.call(expand.grid, c(list(Basin = names(ES)), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
 
 # add indicator estimate
 out_y$ES <- c(ES_y)
 out$ES <- c(ES)
 
 # add indicator SD
-ES_SD_y <- with(surfaces, tapply(oxygendebt, list(Basin, Year), sd, na.rm = TRUE))
+ES_SD_y <- NA
 out_y$ES_SD <- c(ES_SD_y)
 
-ES_SD <- with(surfaces, tapply(oxygendebt, list(Basin), sd, na.rm = TRUE))
+ES_SD <- apply(ES_y, 1, sd)
 out$ES_SD <- c(ES_SD)
 
 # read profile fits
@@ -45,10 +181,10 @@ profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
 
 # add in auxilliary information
 ES_N_y <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin, Year), function(x) sum(!is.na(x))))
-out_y$ES_N <- c(ES_N_y)
+out_y$ES_N <- c(ES_N_y[basins,])
 
 ES_N <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin), function(x) sum(!is.na(x))))
-out$ES_N <- c(ES_N)
+out$ES_N <- c(ES_N[basins])
 
 # now expand to AssessmentUnitID
 library(sp)
@@ -98,15 +234,12 @@ out_y <- out_y[order(out_y$AssessmentUnitID, out_y$Year),]
 if (FALSE) {
   out
   out_y
-
-  # check
-  cbind(with(out_y, tapply(ES_N, Basin, sum)), out$ES_N)
 }
 
 
 # write out
-write.csv(out, file = "analysis/output/OxygenDebt/indicator_table.csv", row.names = FALSE)
-write.csv(out_y, file = "analysis/output/OxygenDebt/indicator_table_by_year.csv", row.names = FALSE)
+write.csv(out, file = "analysis/output/OxygenDebt/uncorrected_indicator_table.csv", row.names = FALSE)
+write.csv(out_y, file = "analysis/output/OxygenDebt/uncorrected_indicator_table_by_year.csv", row.names = FALSE)
 
 # done -------------------
 
