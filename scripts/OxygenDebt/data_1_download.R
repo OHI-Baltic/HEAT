@@ -44,7 +44,7 @@ get_input("data/OxygenDebt/auxilliary.csv")
 
 # download station samples and bathymetry to local folder
 tmp <- sapply(c("data/OxygenDebt/BALTIC_BATHY_BALTSEM.zip",
-                "data/OxygenDebt/StationSamples.zip"),
+                "data/OxygenDebt/StationSamples_20170611.zip"),
               get_input,
               zipped = TRUE)
 
