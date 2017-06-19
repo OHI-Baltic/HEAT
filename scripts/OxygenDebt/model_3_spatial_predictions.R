@@ -69,7 +69,7 @@ surfaces <-
           # set seasonal to zero for annual variation only
           g$coefficients[grep("yday",names(coef(g)))] <- 0
           # make predictions
-          exp(predict(g, newdata = surfaces))
+          unname(c(exp(predict(g, newdata = surfaces))))
         },
         simplify = FALSE)
       )
@@ -78,6 +78,25 @@ surfaces <-
 # calculate derived quantities
 surfaces$depth_change_point1 <- surfaces$halocline - 1.0 * surfaces$depth_gradient
 surfaces$depth_change_point2 <- surfaces$halocline + 1.0 * surfaces$depth_gradient
+
+# brunt vaisala approx
+surfaces$Nbv <- sqrt( 9.8 / (1 + 0.0008 * (surfaces$sali_surf + surfaces$sali_dif/2)) *
+                      0.68 * 0.0008 * surfaces$sali_dif / (2*surfaces$depth_gradient))
+
+# Bottom volume
+surfaces$Vbottom <- surfaces$depth - surfaces$halocline
+surfaces$Vbottom[surfaces$Vbottom < 0] <- NA_real_
+
+# Bottom salinity
+surfaces$Sbottom <-
+  sapply(1:nrow(surfaces),
+    function(i) {
+      # dont calculate if halocline is below max depth
+      if (surfaces$halocline[i] >= surfaces$depth[i]) return (NA_real_)
+      # predict salinity at 1m intervals and take the average
+      depths <- seq(surfaces$halocline[i], surfaces$depth[i], by = 1)
+      mean(sali_profile(depths, surfaces[i,])) # sum(sali) / volume
+    })
 
 # check
 if (FALSE) {

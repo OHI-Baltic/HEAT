@@ -21,7 +21,9 @@ if (!dir.exists("data/OxygenDebt/shapefiles")) dir.create("data/OxygenDebt/shape
 # download data from ftp site ------------------------------------------
 
 # the location of the input data
-ftp <- "ftp://ftp.ices.dk/dist/heat/"
+#ftp <- "ftp://ftp.ices.dk/dist/heat/"
+# temporary file location
+ftp <- "https://raw.githubusercontent.com/ices-tools-prod/heat-ftp-tmp/master/"
 
 # quick function to download input data and save
 get_input <- function(from, force = FALSE, zipped = FALSE) {
@@ -40,11 +42,24 @@ get_input <- function(from, force = FALSE, zipped = FALSE) {
 # the list of input files required to calculate the indicator
 get_input("data/OxygenDebt/auxilliary.csv")
 
-# download to local folder
+# download station samples and bathymetry to local folder
 tmp <- sapply(c("data/OxygenDebt/BALTIC_BATHY_BALTSEM.zip",
                 "data/OxygenDebt/StationSamples.zip"),
               get_input,
               zipped = TRUE)
+
+# download nutrient input and major baltic infow data
+get_input("data/OxygenDebt/nitrogen.csv")
+#KT	Kattegat
+#DS	Danish Straits (= WEB + SOU) (= Western Baltic + Sound)
+#BP	Baltic Proper
+#BS	Bothnian Sea
+#BB	Bothnian Bay
+#GF	Gulf of Finalnd
+#GR	Gulf og Riga
+#BAS Baltic Sea shipping
+
+get_input("data/OxygenDebt/MajorBalticInflows.csv")
 
 # quick function to get shapefiles ----------------------
 download.ICESshape <- function(what, root = "http://gis.ices.dk/shapefiles/") {
