@@ -168,8 +168,8 @@ out <- do.call(expand.grid, c(list(Basin = names(ES)), KEEP.OUT.ATTRS = FALSE, s
 out_y$ES <- c(ES_y)
 out$ES <- c(ES)
 
-# add indicator SD
-ES_SD_y <- NA
+# add indicator SD - approximate as a 20% cv
+ES_SD_y <- out_y$ES * 0.2
 out_y$ES_SD <- c(ES_SD_y)
 
 ES_SD <- apply(ES_y, 1, sd)
