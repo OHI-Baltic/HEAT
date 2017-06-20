@@ -98,9 +98,11 @@ make_datnew <- function(Basin) {
   if (Basin == "Baltic Proper") {
     datnew <- dplyr::left_join(datnew, dplyr::rename(Ninput, Ninput = BAP)[c("year", "Ninput")])
     datnew$offset <- 6.895179
+    datnew$bvmean <- 0.0350
   } else {
     datnew <- dplyr::left_join(datnew, dplyr::rename(Ninput, Ninput = BOB)[c("year", "Ninput")])
     datnew$offset <- 3.893
+    datnew$bvmean <- 0.0696
   }
   # subset to assessment period
   datnew <- datnew[datnew$year %in% 2011:2015,]
@@ -143,7 +145,7 @@ ES_y <-
            pred <- c(X %*% unlist(aux[,c("a_0", "a_N", "a_MBI", "a_salinity")]))
            res <- o2N$o2 - pred
 
-           with(o2N, N*bv) *  aux$a_N + res + newdata$offset
+           (with(o2N, N*bv) *  aux$a_N + res)/o2N$bv * newdata$bvmean + newdata$offset
          })
 ES_y <- t(ES_y)
 colnames(ES_y) <- 2011:2015
