@@ -13,3 +13,5 @@ scripts/Oxydebt/*_convert_plots_to_png.R
 *.pdf
 *.asc
 
+# do not track plots file for now
+scripts/OxygenDebt/output_3_plots.R
