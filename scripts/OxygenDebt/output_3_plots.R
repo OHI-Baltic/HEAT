@@ -138,7 +138,7 @@ dev.off()
 
 # load gam predictions ('pars')
 check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
-if (check != "surfaces") {
+if (check != "surfaces" & FALSE) {
   warning("Error loading gam predictions!\n\tSkipping spatial plots for now.")
 } else {
   rm(check)
