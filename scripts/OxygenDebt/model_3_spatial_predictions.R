@@ -12,6 +12,9 @@ header("model")
 # start timer
 t0 <- proc.time()
 
+# get assessment period
+config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+
 # load gam fits ('gams')
 check <- load("analysis/output/OxygenDebt/gam_fits.RData")
 if (check != "gams") {
@@ -56,7 +59,7 @@ if (FALSE) {
 # create prediction data for each year
 surfaces <-
   do.call(rbind,
-    lapply(2011:2016, function(y) cbind(surfaces, Year = y))
+    lapply(config$years, function(y) cbind(surfaces, Year = y))
   )
 
 # do predictions

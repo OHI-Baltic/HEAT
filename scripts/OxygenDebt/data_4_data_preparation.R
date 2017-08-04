@@ -44,8 +44,9 @@ oxy$Salinity <- keep_x(oxy$Salinity.ctd, oxy$Salinity.bot)
 oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
 rm(keep_x)
 
-# keep only data between 2011 and 2016
-oxy <- oxy[oxy$Year >= 2011 & oxy$Year <= 2016,]
+# keep only data for the years given in the config file
+config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+oxy <- oxy[oxy$Year %in% config$years,]
 
 # create profile ID
 oxy$ID <- as.integer(factor(apply(oxy[c("Year", "Month", "Day", "Hour", "Minute",

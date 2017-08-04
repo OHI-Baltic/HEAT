@@ -12,6 +12,9 @@ header("output")
 # start timer
 t0 <- proc.time()
 
+# get assessment period
+config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+
 # load gam predictions ('pars')
 check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
 if (check != "surfaces") {
@@ -92,7 +95,7 @@ make_datnew <- function(Basin) {
   datnew$mbi[datnew$year %in% as.numeric(names(mbi))] <- mbi[as.numeric(names(mbi)) %in% datnew$year]
 
   # subset to assessment period
-  datnew <- datnew[datnew$year %in% 2011:2015,]
+  datnew <- datnew[datnew$year %in% config$years,]
 
   # return
   datnew
@@ -157,7 +160,7 @@ ES_y <-
            newdata$O2debt_volsp
          })
 ES_y <- t(ES_y)
-colnames(ES_y) <- 2011:2015
+colnames(ES_y) <- config$years
 names(dimnames(ES_y)) <- c("Basin", "Year")
 out_y <- do.call(expand.grid, c(dimnames(ES_y), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
 
