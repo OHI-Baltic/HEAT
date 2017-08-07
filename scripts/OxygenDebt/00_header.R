@@ -18,7 +18,7 @@ function(phase = c("data", "input", "model", "output"))
     )
 
   # common packages -------------------
-  pkg <- unique(c(pkg, "viridis", "gplots"))
+  pkg <- unique(c(pkg, "viridis", "gplots", "jsonlite"))
 
   # install dependencies used in the analysis
   newpkg <- setdiff(pkg, installed.packages())
