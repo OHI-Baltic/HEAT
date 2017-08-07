@@ -39,6 +39,9 @@ get_input <- function(from, force = FALSE, zipped = FALSE) {
   }
 }
 
+# the config file for the analysis
+get_input("data/OxygenDebt/config.json", force = TRUE)
+
 # the list of input files required to calculate the indicator
 get_input("data/OxygenDebt/auxilliary.csv", force = TRUE)
 
