@@ -7,6 +7,7 @@ scripts/Oxydebt/working.R
 scripts/Oxydebt/*_convert_plots_to_png.R
 
 .Rproj.user
+.DS_Store
 *.Rproj
 
 # file types to ignore
