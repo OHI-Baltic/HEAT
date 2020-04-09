@@ -15,16 +15,6 @@ cleanColumnNames <- function(x) {
 }
 
 #' @export
-#' @importFrom utils read.table
-read.dbexport <- function(fname, sep = "\t", na.strings = "NULL") {
-  out <- read.table(fname, sep = sep, header = TRUE, na.strings = na.strings, stringsAsFactors = FALSE)
-  clean_names <- strsplit(readLines(fname, n = 1), sep)[[1]]
-  names(out) <- cleanColumnNames(clean_names)
-  out
-}
-
-
-#' @export
 
 O2satFun <- function(temp) {
   tempabs <- temp + 273.15
