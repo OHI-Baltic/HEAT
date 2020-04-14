@@ -21,11 +21,11 @@ if (!dir.exists("analysis/input/OxygenDebt")) dir.create("analysis/input/OxygenD
 # read in data ----------------------------------------------------------
 
 # read CTD data and remove non SEA samples
-ctd <- read.dbexport("data/OxygenDebt/StationSamplesCTD.txt")
+ctd <-  data.table::fread("https://raw.githubusercontent.com/OHI-Science/bhi-prep/master/data/CW/eutrophication/v2019/intermediate/ox_merged_rawdata.csv")
 ctd <- ctd[grepl("SEA-", ctd$Assessment_Unit),]
 
-# read bottle data and remove non SEA samples
-bot <- read.dbexport("data/OxygenDebt/StationSamplesICE.txt")
+# read dat and remove non SEA samples
+bot <- data.table::fread("https://raw.githubusercontent.com/OHI-Science/bhi-prep/master/data/CW/eutrophication/v2019/intermediate/ox_merged_rawdata.csv")
 bot <- bot[grepl("SEA-", bot$Assessment_Unit),]
 
 # join
@@ -45,14 +45,18 @@ oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
 rm(keep_x)
 
 # keep only data for the years given in the config file
-config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+# config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
 oxy <- oxy[oxy$Year %in% config$years,]
 
 # create profile ID
-oxy$ID <- as.integer(factor(apply(oxy[c("Year", "Month", "Day", "Hour", "Minute",
-                                        "Latitude", "Longitude",
-                                        "Cruise")],
-                                   1, paste, collapse = "_")))
+oxy$ID <- as.integer(factor(
+  apply(
+    oxy[c("Year", "Month", "Day", "Hour", "Minute", "Latitude", "Longitude", "Cruise")],
+    1,
+    paste, 
+    collapse = "_"
+  )
+))
 # sort by ID
 oxy <- oxy[order(oxy$ID),]
 
@@ -94,7 +98,9 @@ oxy <- sp::spTransform(oxy, sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +n
 # ----------------------------
 
 # read helcom indicator modelling areas
-helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
+# helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
+helcom_sf <- sf::st_read("data/OxygenDebt/shapefiles", "helcom_areas")
+helcom <- sf::as_Spatial(helcom_sf)
 
 # join points with polygons
 oxy.helcom <- sp::over(oxy, helcom)
