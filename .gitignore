@@ -1,7 +1,6 @@
 Makefile
 documentation/*
-analysis/*
-data/*
+
 
 scripts/Oxydebt/working.R
 scripts/Oxydebt/*_convert_plots_to_png.R
