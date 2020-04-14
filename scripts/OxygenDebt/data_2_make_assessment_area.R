@@ -19,22 +19,23 @@ t0 <- proc.time()
 # ----------------------------
 
 # read helcom and drop non SEA areas
-helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+helcom <- sf::st_read("data/OxygenDebt/shapefiles/helcom_holasbasins/helcom_holasbasins.shp", "helcom_holasbasins")
 helcom <- helcom[grep("^SEA-", helcom$Code),]
 # transform to utm34
-helcom <- sp::spTransform(helcom, sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+helcom <- sf::st_transform(helcom, crs = "+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
 # merge areas (need to buffer a bit for a clean merge)
+helcom <- sf::as_Spatial(helcom)
 helcom_balsem <- rgeos::gUnaryUnion(rgeos::gBuffer(helcom, byid = TRUE, width = 10))
 
 # read baltsem, and cut over helcom
 baltsem <- rgdal::readOGR("data/OxygenDebt/shapefiles", "Baltsem_utm34", verbose = FALSE)
 helcom_balsem <- rgeos::gIntersection(baltsem, helcom_balsem, byid = TRUE)
 for (i in 1:length(helcom_balsem)) helcom_balsem@polygons[[i]]@ID <- paste(i)
-data <-
-  do.call(rbind,
-          lapply(1:length(helcom_balsem),
-                 function(i) sp::over(sp::spsample(helcom_balsem[i,], 1, type = "random"), baltsem)))
+
+data <- do.call(rbind, lapply(1:length(helcom_balsem), function(i) {
+  sp::over(sp::spsample(helcom_balsem[i,], 1, type = "random"), baltsem)
+}))
 helcom_balsem <- sp::SpatialPolygonsDataFrame(helcom_balsem, data)
 
 # fix names
@@ -44,13 +45,15 @@ helcom_balsem$Bo_Basin <- gsub("oeresund", "Oeresund", helcom_balsem$Bo_Basin)
 helcom_balsem$Basin <- helcom_balsem$Bo_Basin
 
 # keep only certain areas
-helcom_balsem <-
-  helcom_balsem[helcom_balsem$Basin %in% c("Arkona Basin",
-                                           "Baltic Proper",
-                                           "Bornholm Basin",
-                                           "Bothnian Bay",
-                                           "Bothnian Sea",
-                                           "Gulf of Finland"),]
+keep_areas <- c(
+  "Arkona Basin",
+  "Baltic Proper",
+  "Bornholm Basin",
+  "Bothnian Bay",
+  "Bothnian Sea",
+  "Gulf of Finland"
+)
+helcom_balsem <- helcom_balsem[helcom_balsem$Basin %in% keep_areas,]
 
 # merge Gulf of Finland with Baltic Proper
 tmp <- rgeos::gUnaryUnion(helcom_balsem[helcom_balsem$Basin %in% c("Baltic Proper", "Gulf of Finland"),])
@@ -59,18 +62,27 @@ helcom_balsem <- helcom_balsem[helcom_balsem$Basin != "Gulf of Finland",]
 
 # check
 if (FALSE) {
-  sp::plot(helcom_balsem, col = gplots::rich.colors(nrow(helcom_balsem), alpha=0.5))
+  sp::plot(helcom_balsem, col = gplots::rich.colors(nrow(helcom_balsem), alpha = 0.5))
   text(sp::coordinates(helcom_balsem), as.character(helcom_balsem$Basin), cex = 0.7)
 }
 
 # write
-rgdal::writeOGR(helcom_balsem["Basin"], "data/OxygenDebt/shapefiles", "helcom_areas", driver = "ESRI Shapefile", overwrite_layer = TRUE)
+rgdal::writeOGR(
+  helcom_balsem["Basin"], 
+  "data/OxygenDebt/shapefiles", 
+  "helcom_areas", 
+  driver = "ESRI Shapefile", 
+  overwrite_layer = TRUE
+)
 
 # add to zip
-zip("data/OxygenDebt/zips/helcom_areas.zip",
-    paste0("data/OxygenDebt/shapefiles/",
-           dir("data/OxygenDebt/shapefiles", pattern = "^helcom_areas*"))
-    )
+zip(
+  "data/OxygenDebt/zips/helcom_areas.zip",
+  paste0(
+    "data/OxygenDebt/shapefiles/", 
+    dir("data/OxygenDebt/shapefiles", pattern = "^helcom_areas*")
+  )
+)
 
 # done -------------------
 
