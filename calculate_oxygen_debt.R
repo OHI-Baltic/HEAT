@@ -34,7 +34,20 @@ files <- paste0(
   dir("scripts/OxygenDebt/", pattern = "^(data|input|model|output)_.*[.]R$")
 )
 
-## run scripts in correct order
+## order of scripts execution:
+
+# source("scripts/OxygenDebt/data_2_make_assessment_area.R")
+# source("scripts/OxygenDebt/data_3_make_bathymetry_layer.R")
+# source("scripts/OxygenDebt/data_4_data_preparation.R")
+# source("scripts/OxygenDebt/input_1_data_cleaning.R")
+# source("scripts/OxygenDebt/model_1_profiles.R")
+# source("scripts/OxygenDebt/model_2_spatial_profiles.R")
+# source("scripts/OxygenDebt/model_3_spatial_predictions.R")
+# source("scripts/OxygenDebt/output_1_tables.R")
+# source("scripts/OxygenDebt/output_2_tables_corrected.R")
+
+
+## run all scripts in correct order
 for (file in sort(files)) {
   source(file, echo = TRUE, keep.source = TRUE)
 }
