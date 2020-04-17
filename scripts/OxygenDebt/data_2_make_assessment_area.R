@@ -29,7 +29,8 @@ helcom <- sf::as_Spatial(helcom)
 helcom_balsem <- rgeos::gUnaryUnion(rgeos::gBuffer(helcom, byid = TRUE, width = 10))
 
 # read baltsem, and cut over helcom
-baltsem <- rgdal::readOGR("data/OxygenDebt/shapefiles", "Baltsem_utm34", verbose = FALSE)
+baltsem <- sf::st_read("data/OxygenDebt/shapefiles/Baltsem_utm34", "Baltsem_utm34")
+baltsem <- sf::as_Spatial(baltsem)
 helcom_balsem <- rgeos::gIntersection(baltsem, helcom_balsem, byid = TRUE)
 for (i in 1:length(helcom_balsem)) helcom_balsem@polygons[[i]]@ID <- paste(i)
 
