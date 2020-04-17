@@ -6,6 +6,7 @@ scripts/Oxydebt/working.R
 scripts/Oxydebt/*_convert_plots_to_png.R
 
 .Rproj.user
+.Rhistory
 .DS_Store
 *.Rproj
 
