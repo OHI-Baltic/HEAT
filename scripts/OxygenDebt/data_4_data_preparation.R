@@ -49,12 +49,7 @@ oxy$Oxygen <- keep_x(oxy$Oxygen.ctd, oxy$Oxygen.bot)
 oxy$Temperature <- keep_x(oxy$Temperature.ctd, oxy$Temperature.bot)
 oxy$Salinity <- keep_x(oxy$Salinity.ctd, oxy$Salinity.bot)
 oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
-rm(keep_x)9.841,0.2,55.3193,10.8838,8.33,2000,1,3,7,14,SEA-002
-????,1,NA,3.813,19.88,5,55.3193,10.8838,8.26,2000,1,3,7,14,SEA-002
-????,1,NA,3.793,20.269,10,55.3193,10.8838,8.26,2000,1,3,7,14,SEA-002
-????,1,NA,3.803,21.562,15,55.3193,10.8838,8.12,2000,1,3,7,14,SEA-002
-????,1,NA,3.752,22.74,20,55.3193,10.8838,7.98,2000,1,3,7,14,SEA-002
-????,1,NA,3.752,22.
+rm(keep_x)
 
 # keep only data for the years given in the config file
 # config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
