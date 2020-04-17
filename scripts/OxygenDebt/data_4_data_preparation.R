@@ -20,19 +20,26 @@ if (!dir.exists("analysis/input/OxygenDebt")) dir.create("analysis/input/OxygenD
 
 # read in data ----------------------------------------------------------
 
+ctd_stations <- read.csv("data/OxygenDebt/StationsCTD.csv", stringsAsFactors = FALSE)
+ice_stations <- read.csv("data/OxygenDebt/StationsICE.csv", stringsAsFactors = FALSE)
+
 # read CTD data and remove non SEA samples
-ctd <-  data.table::fread("https://raw.githubusercontent.com/OHI-Science/bhi-prep/master/data/CW/eutrophication/v2019/intermediate/ox_merged_rawdata.csv")
+ctd <- data.table::fread("https://raw.githubusercontent.com/OHI-Science/bhi-prep/master/data/CW/eutrophication/v2019/intermediate/ox_merged_rawdata.csv")
 ctd <- ctd[grepl("SEA-", ctd$Assessment_Unit),]
+ctd <- dplyr::filter(ctd, Station %in% ctd_stations$StationNumber)
+
 
 # read dat and remove non SEA samples
 bot <- data.table::fread("https://raw.githubusercontent.com/OHI-Science/bhi-prep/master/data/CW/eutrophication/v2019/intermediate/ox_merged_rawdata.csv")
 bot <- bot[grepl("SEA-", bot$Assessment_Unit),]
+bot <- dplyr::filter(bot, Station %in% ice_stations$StationNumber)
 
 # join
-oxy <- dplyr::full_join(ctd, bot, suffix = c(".ctd", ".bot"),
-                        by = c("Year", "Month", "Day", "Hour", "Minute",
-                               "Latitude", "Longitude",
-                               "Cruise", "Depth"))
+oxy <- dplyr::full_join(
+  ctd, bot, 
+  suffix = c(".ctd", ".bot"),
+  by = c("Year", "Month", "Day", "Hour", "Minute", "Latitude", "Longitude", "Cruise", "Depth")
+)
 rm(ctd, bot)
 
 # apply rules for which data to take:
@@ -42,7 +49,12 @@ oxy$Oxygen <- keep_x(oxy$Oxygen.ctd, oxy$Oxygen.bot)
 oxy$Temperature <- keep_x(oxy$Temperature.ctd, oxy$Temperature.bot)
 oxy$Salinity <- keep_x(oxy$Salinity.ctd, oxy$Salinity.bot)
 oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
-rm(keep_x)
+rm(keep_x)9.841,0.2,55.3193,10.8838,8.33,2000,1,3,7,14,SEA-002
+????,1,NA,3.813,19.88,5,55.3193,10.8838,8.26,2000,1,3,7,14,SEA-002
+????,1,NA,3.793,20.269,10,55.3193,10.8838,8.26,2000,1,3,7,14,SEA-002
+????,1,NA,3.803,21.562,15,55.3193,10.8838,8.12,2000,1,3,7,14,SEA-002
+????,1,NA,3.752,22.74,20,55.3193,10.8838,7.98,2000,1,3,7,14,SEA-002
+????,1,NA,3.752,22.
 
 # keep only data for the years given in the config file
 # config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
