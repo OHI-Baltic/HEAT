@@ -1,3 +1,6 @@
+#
+# Susa: I am not sure that we need this
+# this may be only for the predicitons using nutrient input and inflow
 # ----------------------------
 #
 #   Model spatial profiles
@@ -13,8 +16,11 @@ header("model")
 t0 <- proc.time()
 
 # get assessment period
-config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
 
+# NOTE:changed the below to define years directly here
+#config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+config <- list()
+config[["years"]] <- 2014:2018
 # load gam fits ('gams')
 check <- load("analysis/output/OxygenDebt/gam_fits.RData")
 if (check != "gams") {
@@ -27,6 +33,9 @@ rm(check)
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # read depth layer (spatial points) for prediction
+# Here the address needs to be changed to gunvor
+# susaniiranen$ ssh -X susa@gunvor.stockholmresilience.su.se -p 222 -L 8787:localhost:8787
+scp("gunvor.stockholmresilience.su.se:222", "mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATData/helcom_bathymetry", "password", user="username")
 bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
 
 # drop regions not in models!
