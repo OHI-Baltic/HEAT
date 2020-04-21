@@ -34,8 +34,6 @@ helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose =
 
 # read depth layer (spatial points) for prediction
 # Here the address needs to be changed to gunvor
-# susaniiranen$ ssh -X susa@gunvor.stockholmresilience.su.se -p 222 -L 8787:localhost:8787
-scp("gunvor.stockholmresilience.su.se:222", "mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATData/helcom_bathymetry", "password", user="username")
 bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
 
 # drop regions not in models!
