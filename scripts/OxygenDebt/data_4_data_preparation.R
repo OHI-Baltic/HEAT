@@ -51,9 +51,14 @@ oxy$Salinity <- keep_x(oxy$Salinity.ctd, oxy$Salinity.bot)
 oxy$Type <- ifelse(is.na(oxy$Oxygen.ctd), "BOT", "CTD")
 rm(keep_x)
 
+
 # keep only data for the years given in the config file
+config <- list()
+config[["years"]] <- 2014:2018
 # config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
-oxy <- oxy[oxy$Year %in% config$years,]
+# We don't have config.json. The above was used when running the script alone.
+# config is also created in calculate_oxygen_debt.R
+  oxy <- oxy[oxy$Year %in% config$years,]
 
 # create profile ID
 oxy$ID <- as.integer(factor(
@@ -81,7 +86,7 @@ oxy <- oxy[order(oxy$ID),]
 
 oxy <- oxy[c("ID", "Year", "Month", "Day",
              "Latitude", "Longitude", "Depth", "Type",
-             "Temperature", "Salinity", "Oxygen", "Hydrogen_Sulphide")]
+             "Temperature", "Salinity", "Oxygen")]#, "Hydrogen_Sulphide")]
 
 # ----------------------------
 #

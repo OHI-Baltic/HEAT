@@ -34,6 +34,7 @@ oxy$n_Oxygen <- c(with(oxy, tapply(Oxygen, ID, function(x) sum(!is.na(x))))[past
 oxy$max_depth <- c(with(oxy, tapply(Depth, ID, max))[paste(oxy$ID)])
 
 # oxygen observations are in ml/l - convert to mg/l
+# here we may want to check that the Swedish data uses the same units (ref to Andrea)
 oxy$Oxygen_ml <- oxy$Oxygen
 oxy$Oxygen <- oxy$Oxygen_ml * 1.428 # or / 0.700
 
@@ -41,6 +42,7 @@ oxy$Oxygen <- oxy$Oxygen_ml * 1.428 # or / 0.700
 oxy$Oxygen_deficit <- O2satFun(oxy$Temperature) - oxy$Oxygen
 
 # checks
+# Here H2S data is used, which we don't have in the dataset yet.
 if (FALSE) {
   plot(oxy$Oxygen, oxy$Hydrogen_Sulphide)
   plot(oxy$Oxygen_deficit, oxy$Hydrogen_Sulphide)
