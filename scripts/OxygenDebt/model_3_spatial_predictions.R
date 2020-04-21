@@ -258,7 +258,10 @@ if (FALSE) {
 
 # write out --------------
 
-save(surfaces, file = "analysis/output/OxygenDebt/gam_predictions.RData")
+#save(surfaces, file = "analysis/output/OxygenDebt/gam_predictions.RData")
+# THIS data saved to GUNVOR
+save(surfaces, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_predictions.RData")
+
 
 
 # done -------------------
