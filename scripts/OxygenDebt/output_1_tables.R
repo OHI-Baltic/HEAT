@@ -1,3 +1,5 @@
+# Susa: Here the major inflows are used
+# I hope this doesn't mean that they are incl in the calc.
 # ----------------------------
 #
 #   Correct oxygen debt for
@@ -13,10 +15,16 @@ header("output")
 t0 <- proc.time()
 
 # get assessment period
-config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+#config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+config <- list()
+config[["years"]] <- 2014:2018
 
 # load gam predictions ('pars')
-check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
+#THIS when local computer
+#check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
+#THIS when GUNVOR
+check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_predictions.RData")
+
 if (check != "surfaces") {
   stop("Error loading gam predictions!\n\tTry rerunning model_3_spatial_predictions.R")
 }
