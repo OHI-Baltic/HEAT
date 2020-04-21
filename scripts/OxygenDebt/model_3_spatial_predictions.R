@@ -1,6 +1,5 @@
 #
-# Susa: I am not sure that we need this
-# this may be only for the predicitons using nutrient input and inflow
+# Susa: Calculates volume specific Odebt
 # ----------------------------
 #
 #   Model spatial profiles
@@ -22,7 +21,13 @@ t0 <- proc.time()
 config <- list()
 config[["years"]] <- 2014:2018
 # load gam fits ('gams')
-check <- load("analysis/output/OxygenDebt/gam_fits.RData")
+
+#THIS if on local computer
+#check <- load("analysis/output/OxygenDebt/gam_fits.RData")
+
+#THIS if on Gunvor
+check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_fits.RData")
+
 if (check != "gams") {
   stop("Error loading gam fits!\n\tTry rerunning model_2_spatial_profiles.R")
 }
@@ -33,8 +38,12 @@ rm(check)
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # read depth layer (spatial points) for prediction
-# Here the address needs to be changed to gunvor
-bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
+
+# THIS when on local computer 
+#bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
+
+# THIS when on GUNVOR
+bathy <- rgdal::readOGR("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATData/helcom_bathymetry", "helcom_bathymetry", verbose = FALSE)
 
 # drop regions not in models!
 if ("Basin" %in% names(gams[[1]]$var.summary)) {
