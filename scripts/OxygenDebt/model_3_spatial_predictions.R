@@ -19,14 +19,15 @@ t0 <- proc.time()
 # NOTE:changed the below to define years directly here
 #config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
 config <- list()
-config[["years"]] <- 2014:2018
+config[["years"]] <- 2000:2019
 # load gam fits ('gams')
 
 #THIS if on local computer
 #check <- load("analysis/output/OxygenDebt/gam_fits.RData")
 
 #THIS if on Gunvor
-check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_fits.RData")
+#check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_fits.RData")
+check <- load("analysis/output/OxygenDebt/gam_fits.RData")
 
 if (check != "gams") {
   stop("Error loading gam fits!\n\tTry rerunning model_2_spatial_profiles.R")

@@ -17,7 +17,7 @@ t0 <- proc.time()
 # get assessment period
 #config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
 config <- list()
-config[["years"]] <- 2014:2018
+config[["years"]] <- 2000:2019
 
 # load gam predictions ('pars')
 #THIS when local computer
@@ -42,12 +42,11 @@ mbi[is.na(mbi)] <- 0
 
 
 make_datnew <- function(Basin) {
-
+  # Is this where the information is aggregated to Basin level?
   # aggregate spatial estimates to basin level:
   summarise <- function(x, func = mean, Basin = "Baltic Proper") {
     filt <- surfaces$Basin == Basin
     bylist <- surfaces$Year[filt]
-    c(tapply(x[filt], bylist, func, na.rm = TRUE))
   }
 
   datnew <-
@@ -163,7 +162,7 @@ basins <- unique(surfaces$Basin)
 ES_y <-
   sapply(basins,
          function(Basin) {
-           newdata <- make_datnew(Basin)
+           newdata <- make_datnew(Basin) #here an issue
            aux <- get_aux(Basin)
            newdata$O2debt_volsp
          })
@@ -188,6 +187,7 @@ out$ES_SD <- c(ES_SD)
 
 # read profile fits
 profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
+#profiles <- read.csv("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/profiles.csv")
 
 # add in auxilliary information
 ES_N_y <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin, Year), function(x) sum(!is.na(x))))
@@ -200,7 +200,8 @@ out$ES_N <- c(ES_N[basins])
 library(sp)
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 helcom <- helcom[helcom$Basin %in% out$Basin,]
-SEA <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+#SEA <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+SEA <- rgdal::readOGR("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATShapefiles/AssessmentUnit_20112016", "AssessmentUnit_20112016Polygon", verbose = FALSE)
 SEA <- SEA[grep("SEA", SEA$Code),]
 SEA <- spTransform(SEA, CRS(proj4string(helcom)))
 
@@ -248,8 +249,8 @@ if (FALSE) {
 
 
 # write out
-write.csv(out, file = "analysis/output/OxygenDebt/uncorrected_indicator_table.csv", row.names = FALSE)
-write.csv(out_y, file = "analysis/output/OxygenDebt/uncorrected_indicator_table_by_year.csv", row.names = FALSE)
+write.csv(out, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/uncorrected_indicator_table_2000_2019.csv", row.names = FALSE)
+write.csv(out_y, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/uncorrected_indicator_table_by_year_2000_2019.csv", row.names = FALSE)
 
 # done -------------------
 

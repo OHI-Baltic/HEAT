@@ -54,7 +54,7 @@ rm(keep_x)
 
 # keep only data for the years given in the config file
 config <- list()
-config[["years"]] <- 2014:2018
+config[["years"]] <- 2000:2019
 # config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
 # We don't have config.json. The above was used when running the script alone.
 # config is also created in calculate_oxygen_debt.R

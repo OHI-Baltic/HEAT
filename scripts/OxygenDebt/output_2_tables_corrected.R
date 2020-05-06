@@ -13,10 +13,13 @@ header("output")
 t0 <- proc.time()
 
 # get assessment period
-config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+#config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+config <- list()
+config[["years"]] <- 2000:2019
 
 # load gam predictions ('pars')
-check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
+#check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
+check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_predictions.RData")
 if (check != "surfaces") {
   stop("Error loading gam predictions!\n\tTry rerunning model_3_spatial_predictions.R")
 }
@@ -38,14 +41,14 @@ Ninput <- read.csv("data/OxygenDebt/nitrogen.csv")
 Ninput <- dplyr::rename(Ninput, year = Year)
 
 make_datnew <- function(Basin) {
-
+  
   # aggregate spatial estimates to basin level:
   summarise <- function(x, func = mean, Basin = "Baltic Proper") {
     filt <- surfaces$Basin == Basin
     bylist <- surfaces$Year[filt]
     c(tapply(x[filt], bylist, func, na.rm = TRUE))
   }
-
+  
   datnew <-
     data.frame(
       year = unique(surfaces$Year),
@@ -170,7 +173,7 @@ ES_SD <- apply(ES_y, 1, sd)
 out$ES_SD <- c(ES_SD)
 
 # read profile fits
-profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
+profiles <- read.csv("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/profiles.csv")
 
 # add in auxilliary information
 ES_N_y <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin, Year), function(x) sum(!is.na(x))))
@@ -183,7 +186,7 @@ out$ES_N <- c(ES_N[basins])
 library(sp)
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 helcom <- helcom[helcom$Basin %in% out$Basin,]
-SEA <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+SEA <- rgdal::readOGR("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATShapefiles/AssessmentUnit_20112016", "AssessmentUnit_20112016Polygon", verbose = FALSE)
 SEA <- SEA[grep("SEA", SEA$Code),]
 SEA <- spTransform(SEA, CRS(proj4string(helcom)))
 
@@ -231,8 +234,8 @@ if (FALSE) {
 
 
 # write out
-write.csv(out, file = "analysis/output/OxygenDebt/corrected_indicator_table.csv", row.names = FALSE)
-write.csv(out_y, file = "analysis/output/OxygenDebt/corrected_indicator_table_by_year.csv", row.names = FALSE)
+write.csv(out, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/corrected_indicator_table.csv", row.names = FALSE)
+write.csv(out_y, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/corrected_indicator_table_by_year.csv", row.names = FALSE)
 
 # done -------------------
 

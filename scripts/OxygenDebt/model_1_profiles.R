@@ -28,7 +28,7 @@ profiles <-
 
 # join all profile level variables onto profiles
 out <- unique(dplyr::select(oxy, -Depth, -Type,
-                                 -Temperature, -Salinity, -Oxygen, -Hydrogen_Sulphide,
+                                 -Temperature, -Salinity, -Oxygen, #-Hydrogen_Sulphide,
                                  -Oxygen_ml, -Oxygen_deficit, -censor))
 rownames(out) <- paste(out$ID)
 

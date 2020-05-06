@@ -1,0 +1,8 @@
+Basin, surfacedepth1, surfacedepth2, salmod_wt_depth1, salmod_wt_depth2, salmod_wt, salmod_halocline_lower, salmod_max_depth,a_0,a_N,a_MBI,a_salinity,a_AR1
+Arkona Basin,10,20,20,60,3,30,40,NA,NA,NA,NA,NA
+Bornholm Basin,20,30,40,80,3,40,60,221.5,4.66,0.07,11.78,0.306
+Baltic Proper,10,20,50,120,3,30,40,377.1,15.77,-0.03,17.78,0.899
+Gulf of Riga,10,20,30,60,3,40,80,NA,NA,NA,NA,NA
+Gulf of Finland,20,30,30,60,3,40,80,NA,NA,NA,NA,NA
+Bothnian Sea,10,20,40,100,3,30,60,NA,NA,NA,NA,NA
+Bothnian Bay,10,20,40,80,3,30,40,NA,NA,NA,NA,NA
