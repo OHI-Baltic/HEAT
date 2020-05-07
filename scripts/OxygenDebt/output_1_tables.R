@@ -14,17 +14,19 @@ header("output")
 # start timer
 t0 <- proc.time()
 
-# get assessment period
-#config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
-config <- list()
-config[["years"]] <- 2000:2019
+## get assessment period
+# config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+## we don't have config.json, 
+## config is created in calculate_oxygen_debt.R
+## 00_header.R was edited to keep it in the environment through calculations
+
 
 # load gam predictions ('pars')
-#THIS when local computer
-#check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
-#THIS when GUNVOR
-check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_predictions.RData")
-
+if(file.exists(file.path(dirmain, "analysis/output/OxygenDebt/gam_predictions.RData"))){
+  check <- load("analysis/output/OxygenDebt/gam_predictions.RData")
+} else {
+  check <- load(file.path(bhiremote,  "HEATOutput", "analysis", "output", "OxygenDebt", "gam_predictions.RData"))
+}
 if (check != "surfaces") {
   stop("Error loading gam predictions!\n\tTry rerunning model_3_spatial_predictions.R")
 }
@@ -34,11 +36,11 @@ rm(check)
 aux_info <- read.csv("data/OxygenDebt/auxilliary.csv")
 
 # load baltic inflow data
-mbi <- read.csv("data/OxygenDebt/MajorBalticInflows.csv")
-mbi_years <- min(mbi$year_end, na.rm = TRUE):max(mbi$year_end, na.rm = TRUE)
-mbi <- mbi[mbi$year_end %in% mbi_years,]
-mbi <- tapply(mbi$intensity, factor(mbi$year_end, levels = mbi_years), sum)
-mbi[is.na(mbi)] <- 0
+# mbi <- read.csv("data/OxygenDebt/MajorBalticInflows.csv")
+# mbi_years <- min(mbi$year_end, na.rm = TRUE):max(mbi$year_end, na.rm = TRUE)
+# mbi <- mbi[mbi$year_end %in% mbi_years,]
+# mbi <- tapply(mbi$intensity, factor(mbi$year_end, levels = mbi_years), sum)
+# mbi[is.na(mbi)] <- 0
 
 
 make_datnew <- function(Basin) {
@@ -47,6 +49,7 @@ make_datnew <- function(Basin) {
   summarise <- function(x, func = mean, Basin = "Baltic Proper") {
     filt <- surfaces$Basin == Basin
     bylist <- surfaces$Year[filt]
+    c(tapply(x[filt], bylist, func, na.rm = TRUE))
   }
 
   datnew <-
@@ -80,13 +83,13 @@ make_datnew <- function(Basin) {
       hypoxic_volume = NA,
       cod_rep_volume = NA,
       hypoxic_area = NA,
-      mbi = 0,
+      # mbi = 0,
       Ninput = NA
     )
 
   # brunt vaisala approx
   # this is the one used in PNAS 2014 paper:
-  #surfaces$Nbv <- sqrt( 9.8 / (1 + 0.0008 * (surfaces$sali_surf + surfaces$sali_dif/2)) *
+  # surfaces$Nbv <- sqrt( 9.8 / (1 + 0.0008 * (surfaces$sali_surf + surfaces$sali_dif/2)) *
   #                      0.68 * 0.0008 * surfaces$sali_dif / (2*surfaces$depth_gradient))
   # this is the one used in TARGREV:
   datnew$Nbv <- sqrt( 9.8 / (1 + 0.001 * (datnew$sali_surf + datnew$sali_dif/2)) *
@@ -99,7 +102,7 @@ make_datnew <- function(Basin) {
   datnew$O2debt_volsp <- datnew$O2debt / (datnew$Lhalo_volume + datnew$bottom_volume) * 1000
 
   # major baltic inflows
-  datnew$mbi[datnew$year %in% as.numeric(names(mbi))] <- mbi[as.numeric(names(mbi)) %in% datnew$year]
+  # datnew$mbi[datnew$year %in% as.numeric(names(mbi))] <- mbi[as.numeric(names(mbi)) %in% datnew$year]
 
   # subset to assessment period
   datnew <- datnew[datnew$year %in% config$years,]
@@ -119,8 +122,8 @@ if (FALSE) {
   newdata <- make_datnew("Baltic Proper")
 
   # uncorrected oxygen debt
-  x <- datnew$year
-  y <- datnew$O2debt_volsp
+  x <- newdata$year
+  y <- newdata$O2debt_volsp
   smoothy <-
     sapply(seq_along(y),
            function(i) {
@@ -136,33 +139,32 @@ if (FALSE) {
   lines(x, smoothy, lwd = 3)
 }
 
-if (FALSE) {
-  newdata <- make_datnew("Baltic Proper")
-  aux <- get_aux("Baltic Proper")
-
-  # corrected oxygen debt - what I think it should be
-  x <- datnew$year
-  y <- datnew$O2debt_volsp -
-         aux$a_MBI * datnew$mbi * datnew$Nbv -
-         aux$a_salinity * (datnew$bottom_salinity + datnew$Lhalo_salinity)/10 * datnew$Nbv
-
-  plot(x, y,
-       main = "Corrected",
-       pch = 16, col = "darkblue", cex = 1.2,
-       ylab = "Volume specific O2 debt", las = 1)
-
-  mean(y)
-}
+# if (FALSE) {
+#   newdata <- make_datnew("Baltic Proper")
+#   aux <- get_aux("Baltic Proper")
+# 
+#   # corrected oxygen debt - what I think it should be
+#   x <- newdata$year
+#   y <- newdata$O2debt_volsp -
+#          aux$a_MBI * newdata$mbi * newdata$Nbv -
+#          aux$a_salinity * (newdata$bottom_salinity + newdata$Lhalo_salinity)/10 * newdata$Nbv
+# 
+#   plot(x, y,
+#        main = "Corrected",
+#        pch = 16, col = "darkblue", cex = 1.2,
+#        ylab = "Volume specific O2 debt", las = 1)
+# 
+#   mean(y)
+# }
 
 # create table of indicators by year and by year and basin
 
 basins <- unique(surfaces$Basin)
-#basins <- c("Baltic Proper", "Bornholm Basin")
 
 ES_y <-
   sapply(basins,
          function(Basin) {
-           newdata <- make_datnew(Basin) #here an issue
+           newdata <- make_datnew(Basin) # here an issue
            aux <- get_aux(Basin)
            newdata$O2debt_volsp
          })
@@ -187,7 +189,7 @@ out$ES_SD <- c(ES_SD)
 
 # read profile fits
 profiles <- read.csv("analysis/output/OxygenDebt/profiles.csv")
-#profiles <- read.csv("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/profiles.csv")
+
 
 # add in auxilliary information
 ES_N_y <- with(profiles, tapply(O2def_slope_below_halocline, list(Basin, Year), function(x) sum(!is.na(x))))
@@ -200,8 +202,15 @@ out$ES_N <- c(ES_N[basins])
 library(sp)
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 helcom <- helcom[helcom$Basin %in% out$Basin,]
-#SEA <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
-SEA <- rgdal::readOGR("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATShapefiles/AssessmentUnit_20112016", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+# read AssessmentUnit polygons
+if(!any(grepl(list.files("data/OxygenDebt/shapefiles"), pattern = "AssessmentUnit_20112016"))){
+  ## if assessment polygons shapefile does not exist locally
+  ## e.g. if working on gunvor and never copied to or created bathy in data/OxygenDebt/shapefiles folder
+  SEA <- rgdal::readOGR(file.path(bhiremote, "HEATShapefiles", "AssessmentUnit_20112016"), "AssessmentUnit_20112016Polygon", verbose = FALSE)
+} else {
+  ## if assessment polygons shapefile exists locally
+  SEA <- rgdal::readOGR("data/OxygenDebt/shapefiles", "AssessmentUnit_20112016Polygon", verbose = FALSE)
+}
 SEA <- SEA[grep("SEA", SEA$Code),]
 SEA <- spTransform(SEA, CRS(proj4string(helcom)))
 
@@ -247,10 +256,20 @@ if (FALSE) {
   out_y
 }
 
+## WRITE OUTPUT ---
+out_filename <- sprintf("uncorrected_indicator_table_%s_%s.csv", config$years[1], config$years[length(config$years)])
+out_y_filename <-sprintf("uncorrected_indicator_table_by_year_%s_%s.csv", config$years[1], config$years[length(config$years)])
+## remote
+# out_fp_remote <- file.path(bhiremote, "HEATOutput", "analysis", "output")
+# if(file.exists(file.path(bhiremote, "HEATOutput", "analysis"))){
+#   if(!file.exists(out_fp_remote)){dir.create(out_fp_remote)}
+#   write.csv(out, file = file.path(out_fp_remote, "OxygenDebt", out_filename), row.names = FALSE)
+#   write.csv(out_y, file = file.path(out_fp_remote, "OxygenDebt", out_y_filename), row.names = FALSE)
+# }
+## local
+write.csv(out, file = file.path("analysis", "output", "OxygenDebt", out_filename), row.names = FALSE)
+write.csv(out_y, file = file.path("analysis", "output", "OxygenDebt", out_y_filename), row.names = FALSE)
 
-# write out
-write.csv(out, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/uncorrected_indicator_table_2000_2019.csv", row.names = FALSE)
-write.csv(out_y, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/uncorrected_indicator_table_by_year_2000_2019.csv", row.names = FALSE)
 
 # done -------------------
 

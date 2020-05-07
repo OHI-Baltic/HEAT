@@ -21,19 +21,22 @@ if (!dir.exists("analysis/output/OxygenDebt")) dir.create("analysis/output/Oxyge
 oxy <- read.csv("analysis/input/OxygenDebt/oxy_clean.csv")
 
 # run all fits
-profiles <-
-  do.call(rbind,
-          lapply(unique(oxy$ID),
-                 function(id) doonefit_full(subset(oxy, ID == id), ID = id, debug = TRUE)))
+profiles <- do.call(rbind, lapply(
+  unique(oxy$ID),
+  function(id){doonefit_full(subset(oxy, ID == id), ID = id, debug = TRUE)}
+))
+# summary(as.factor(profiles$notes)) 
 
 # join all profile level variables onto profiles
-out <- unique(dplyr::select(oxy, -Depth, -Type,
-                                 -Temperature, -Salinity, -Oxygen, #-Hydrogen_Sulphide,
-                                 -Oxygen_ml, -Oxygen_deficit, -censor))
+out <- unique(dplyr::select(
+  oxy, -Depth, -Type,
+  -Temperature, -Salinity, -Oxygen, # -Hydrogen_Sulphide,
+  -Oxygen_ml, -Oxygen_deficit, -censor
+))
 rownames(out) <- paste(out$ID)
 
 # join this onto the profiles
-profiles <- cbind.data.frame(profiles, out[paste(profiles$ID),-1])
+profiles <- cbind.data.frame(profiles, out[paste(profiles$ID), -1])
 
 # select which data are reliable -----
 drop_sal <- profiles$sali_dif.se > 2.5 | # only use profiles that are based on an estimate of the salinity difference estimate with +- 5 accuracy
@@ -66,9 +69,6 @@ write.csv(file = "analysis/output/OxygenDebt/profiles.csv", profiles, row.names 
 # done -------------------
 
 message(sprintf("time elapsed: %.2f seconds", (proc.time() - t0)["elapsed"]))
-
-
-
 
 
 # checks -----------------

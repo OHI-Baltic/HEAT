@@ -31,35 +31,32 @@ form <- as.formula(
                    s(Basin, bs = 're') +
                    s(Year, k = %i, bs = 'tp', m = 1, by = Basin)", length(unique(profiles$Year))))
 
-#form <- val ~ te(x, y, Year, k = c(20, 5), d = c(2,1), m = c(2,1), bs = c("tp", "tp")) +
-#              te(x, y, yday, k = c(10, 6), d = c(2,1), bs = c("tp", "cc"))
+# form <- val ~ te(x, y, Year, k = c(20, 5), d = c(2,1), m = c(2,1), bs = c("tp", "tp")) +
+#               te(x, y, yday, k = c(10, 6), d = c(2,1), bs = c("tp", "cc"))
 
 # fit gams
-what <- c("sali_surf", "sali_dif", "halocline", "depth_gradient",
-          "O2def_below_halocline")
+what <- c("sali_surf", "sali_dif", "halocline", "depth_gradient", "O2def_below_halocline")
 
-fitfunc1 <-
-  function(what) {
-    profiles$val <- log(profiles[[what]])
-    gam(form, data = profiles, drop.unused.levels = FALSE)
-  }
+fitfunc1 <-  function(what) {
+  profiles$val <- log(profiles[[what]])
+  gam(form, data = profiles, drop.unused.levels = FALSE)
+}
 
 gams <- lapply(what, fitfunc1)
 names(gams) <- what
 
 # substitute zeros for smallest non zero in slope estimate
-fitfunc2 <-
-  function(what) {
-    profiles$val <- log(profiles[[what]])
-    profiles$val[which(profiles[[what]] == 0)] <- min(profiles[which(profiles[[what]] > 0),what])
-    gam(form, data = profiles, drop.unused.levels = FALSE)
-  }
+fitfunc2 <- function(what) {
+  profiles$val <- log(profiles[[what]])
+  profiles$val[which(profiles[[what]] == 0)] <- min(profiles[which(profiles[[what]] > 0),what])
+  gam(form, data = profiles, drop.unused.levels = FALSE)
+}
 
 gams$O2def_slope_below_halocline <- fitfunc2("O2def_slope_below_halocline")
 
 
 # save
-save(gams, file = "analysis/output/OxygenDebt/gam_fits.RData")
+save(gams, file = file.path(dirmain, "analysis/output/OxygenDebt/gam_fits.RData"))
 
 # done -------------------
 

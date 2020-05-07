@@ -53,12 +53,12 @@ rm(keep_x)
 
 
 # keep only data for the years given in the config file
-config <- list()
-config[["years"]] <- 2000:2019
 # config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
-# We don't have config.json. The above was used when running the script alone.
-# config is also created in calculate_oxygen_debt.R
-  oxy <- oxy[oxy$Year %in% config$years,]
+
+## we don't have config.json, 
+## config is created in calculate_oxygen_debt.R
+## 00_header.R was edited to keep it in the environment through calculations
+oxy <- oxy[oxy$Year %in% config$years,]
 
 # create profile ID
 oxy$ID <- as.integer(factor(
@@ -86,7 +86,7 @@ oxy <- oxy[order(oxy$ID),]
 
 oxy <- oxy[c("ID", "Year", "Month", "Day",
              "Latitude", "Longitude", "Depth", "Type",
-             "Temperature", "Salinity", "Oxygen")]#, "Hydrogen_Sulphide")]
+             "Temperature", "Salinity", "Oxygen")] #, "Hydrogen_Sulphide")]
 
 # ----------------------------
 #

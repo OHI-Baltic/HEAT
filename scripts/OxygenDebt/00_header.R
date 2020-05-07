@@ -37,7 +37,7 @@ header <- function(phase = c("data", "input", "model", "output")){
     })
   
   # clear workspace -------------------
-  rm(list = setdiff(ls(envir = .GlobalEnv), "config"), envir = .GlobalEnv)
+  rm(list = setdiff(ls(envir = .GlobalEnv), c("config", "dirmain", "bhiremote")), envir = .GlobalEnv)
 }
 
 

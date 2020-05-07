@@ -1,5 +1,6 @@
-#
+# Notes
 # Susa: Calculates volume specific Odebt
+# 
 # ----------------------------
 #
 #   Model spatial profiles
@@ -14,21 +15,9 @@ header("model")
 # start timer
 t0 <- proc.time()
 
-# get assessment period
 
-# NOTE:changed the below to define years directly here
-#config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
-config <- list()
-config[["years"]] <- 2000:2019
 # load gam fits ('gams')
-
-#THIS if on local computer
-#check <- load("analysis/output/OxygenDebt/gam_fits.RData")
-
-#THIS if on Gunvor
-#check <- load("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_fits.RData")
-check <- load("analysis/output/OxygenDebt/gam_fits.RData")
-
+check <- load(file.path(dirmain, "analysis/output/OxygenDebt/gam_fits.RData"))
 if (check != "gams") {
   stop("Error loading gam fits!\n\tTry rerunning model_2_spatial_profiles.R")
 }
@@ -39,12 +28,14 @@ rm(check)
 helcom <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_areas", verbose = FALSE)
 
 # read depth layer (spatial points) for prediction
-
-# THIS when on local computer 
-#bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
-
-# THIS when on GUNVOR
-bathy <- rgdal::readOGR("/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATData/helcom_bathymetry", "helcom_bathymetry", verbose = FALSE)
+if(!any(grepl(list.files("data/OxygenDebt/shapefiles"), pattern = "helcom_bathymetry"))){
+  ## if bathymetry shapefile does not exist locally
+  ## e.g. if working on gunvor and never copied to or created bathy in data/OxygenDebt/shapefiles folder
+  bathy <- rgdal::readOGR(file.path(bhiremote, "HEATData", "helcom_bathymetry"), "helcom_bathymetry", verbose = FALSE)
+} else {
+  ## if bathymetry shapefile exists locally
+  bathy <- rgdal::readOGR("data/OxygenDebt/shapefiles", "helcom_bathymetry", verbose = FALSE)
+}
 
 # drop regions not in models!
 if ("Basin" %in% names(gams[[1]]$var.summary)) {
@@ -52,7 +43,7 @@ if ("Basin" %in% names(gams[[1]]$var.summary)) {
 }
 
 
-# quick plot
+# quick plot of bathymetry underlying helcom polygons
 if (FALSE) {
   sp::plot(bathy, col = rev(viridis::magma(50, alpha=0.5))[cut(bathy$depth, 50)], pch = ".")
   sp::plot(helcom, add = TRUE, border = "red")
@@ -73,13 +64,23 @@ if (FALSE) {
   surfaces <- surfaces[sample(1:nrow(surfaces), 1000),]
 }
 
-# create prediction data for each year
-surfaces <-
-  do.call(rbind,
-    lapply(config$years, function(y) cbind(surfaces, Year = y))
-  )
 
-# do predictions
+## get assessment period
+# config <- jsonlite::fromJSON("data/OxygenDebt/config.json")
+## we don't have config.json, 
+## config is created in calculate_oxygen_debt.R
+## 00_header.R was edited to keep it in the environment through calculations
+
+# create prediction data for each year
+surfaces <- do.call(rbind, lapply(
+  config$years, 
+  function(y) cbind(surfaces, Year = y)
+))
+
+
+## Do Predictions ----
+
+## one of most time consuming steps in this, or of all model scripts 
 surfaces <-
   do.call(cbind.data.frame,
     c(list(surfaces),
@@ -87,7 +88,7 @@ surfaces <-
         function(g)
         {
           # set seasonal to zero for annual variation only
-          g$coefficients[grep("yday",names(coef(g)))] <- 0
+          g$coefficients[grep("yday", names(coef(g)))] <- 0
           # make predictions
           unname(c(exp(predict(g, newdata = surfaces))))
         },
@@ -239,7 +240,7 @@ if (FALSE) {
   summary(surfaces)
 
   # plot surfaces to check
-  tmp <- surfaces[surfaces$Year == 2011,]
+  tmp <- surfaces[surfaces$Year == 2014,]
   sp::coordinates(tmp) <- c("x", "y")
   sp::proj4string(tmp) <- sp::CRS("+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
@@ -259,10 +260,14 @@ if (FALSE) {
 
 # write out --------------
 
-#save(surfaces, file = "analysis/output/OxygenDebt/gam_predictions.RData")
-# THIS data saved to GUNVOR
-save(surfaces, file = "/mnt/data/ellie/bhi_share/BHI 2.0/Goals/CW/EUT/HEATOutput/analysis/output/OxygenDebt/gam_predictions.RData")
-
+if(file.exists(file.path(bhiremote, "HEATOutput", "analysis", "output", "OxygenDebt"))){
+  ## save on remote if the directory exists
+  save(surfaces, file = file.path(bhiremote,  "HEATOutput", "analysis", "output", "OxygenDebt", "gam_predictions.RData"))
+}
+if(file.exists("analysis/output/OxygenDebt/")){
+  ## also save locally if the directory exists
+  save(surfaces, file = "analysis/output/OxygenDebt/gam_predictions.RData")
+}
 
 
 # done -------------------
